@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import type { Category } from '../types'
 
+const catColors: Record<string, string> = {
+  'Cardio': 'cat-cardio', 'Strength': 'cat-strength', 'Free Weights': 'cat-free-weights',
+  'Machines': 'cat-machines', 'Accessories': 'cat-accessories', 'Supplements': 'cat-supplements', 'Apparel': 'cat-apparel',
+}
+
 interface CategoryManagerProps {
   categories: Category[]
   onAdd: (name: string) => void
@@ -26,15 +31,15 @@ export default function CategoryManager({ categories, onAdd, onDelete }: Categor
           placeholder="New category name"
           value={name}
           onChange={e => setName(e.target.value)}
-          className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="input-neon flex-1 px-3 py-2 text-sm"
         />
-        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">Add</button>
+        <button type="submit" className="btn-primary px-4 py-2 text-sm">Add</button>
       </form>
-      <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
         {categories.map(c => (
-          <div key={c.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-700">{c.name}</span>
-            <button onClick={() => onDelete(c.id)} className="text-red-500 hover:text-red-700 text-xs font-medium transition">Delete</button>
+          <div key={c.id} className={`cat-pill ${catColors[c.name] || 'cat-accessories'} gap-2`}>
+            <span>{c.name}</span>
+            <button onClick={() => onDelete(c.id)} className="opacity-60 hover:opacity-100 transition text-xs ml-1">&times;</button>
           </div>
         ))}
       </div>

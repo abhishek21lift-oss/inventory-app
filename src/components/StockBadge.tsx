@@ -4,7 +4,9 @@ interface StockBadgeProps {
 }
 
 export default function StockBadge({ quantity, minStock }: StockBadgeProps) {
-  if (quantity === 0) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Out of Stock</span>
-  if (quantity <= minStock) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Low Stock</span>
-  return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">In Stock</span>
+  if (quantity === 0)
+    return <span className="badge badge-red"><span className="w-1.5 h-1.5 rounded-full bg-[#ff375f] mr-1.5 animate-pulse" />Out of Stock</span>
+  if (quantity <= minStock)
+    return <span className="badge badge-yellow"><span className="w-1.5 h-1.5 rounded-full bg-[#ffd60a] mr-1.5" />Low Stock</span>
+  return <span className="badge badge-green"><span className="w-1.5 h-1.5 rounded-full bg-[#00d4aa] mr-1.5" />In Stock</span>
 }

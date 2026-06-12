@@ -6,6 +6,9 @@ export interface Item {
   quantity: number
   minStock: number
   price: number
+  brand: string
+  location: string
+  condition: string
   createdAt: string
 }
 

@@ -49,13 +49,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     Promise.all([api.fetchItems(), api.fetchCategories()])
       .then(([items, categories]) => {
-        dispatch({
-          type: 'SET_INITIAL',
-          payload: {
-            items: items.map(i => ({ ...i, minStock: i.minStock })),
-            categories,
-          },
-        })
+        dispatch({ type: 'SET_INITIAL', payload: { items, categories } })
       })
       .finally(() => setLoading(false))
   }, [])

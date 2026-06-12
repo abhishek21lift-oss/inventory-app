@@ -1,3 +1,5 @@
+import type { Item } from './types'
+
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -12,34 +14,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json()
 }
 
-export interface ItemData {
-  id: string
-  name: string
-  sku: string
-  category: string
-  quantity: number
-  minStock: number
-  price: number
-  createdAt: string
-}
-
-export interface CategoryData {
-  id: string
-  name: string
-}
-
 export function fetchItems() {
-  return request<ItemData[]>('/api/items')
+  return request<Item[]>('/api/items')
 }
 
-export function createItem(item: ItemData) {
-  return request<ItemData>('/api/items', {
+export function createItem(item: Item) {
+  return request<Item>('/api/items', {
     method: 'POST',
     body: JSON.stringify(item),
   })
 }
 
-export function updateItem(id: string, data: Partial<ItemData>) {
+export function updateItem(id: string, data: Partial<Item>) {
   return request<{ message: string }>(`/api/items/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -53,11 +39,11 @@ export function deleteItem(id: string) {
 }
 
 export function fetchCategories() {
-  return request<CategoryData[]>('/api/categories')
+  return request<{ id: string; name: string }[]>('/api/categories')
 }
 
 export function createCategory(id: string, name: string) {
-  return request<CategoryData>('/api/categories', {
+  return request<{ id: string; name: string }>('/api/categories', {
     method: 'POST',
     body: JSON.stringify({ id, name }),
   })
