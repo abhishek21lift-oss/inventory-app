@@ -361,6 +361,12 @@ select.input-gym {
   box-shadow: var(--shadow-sm);
 }
 
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Price tag */
 .price-tag {
   font-weight: 700;
