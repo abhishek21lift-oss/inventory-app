@@ -3,7 +3,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "env": {
-    "VITE_API_URL": "https://inventory-backend.onrender.com"
+    "VITE_API_URL": "https://inventory-backend-p11x.onrender.com"
   }
 }
