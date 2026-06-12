@@ -56,11 +56,11 @@ export default function Invoices() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Invoices</h1><p className="text-sm text-gray-500 mt-0.5">{invoices.length} total</p></div>
-        <button onClick={() => { setFormCust(''); setFormEmail(''); setFormPhone(''); setFormWh(''); setFormNotes(''); setFormTax(0); setFormItems([]); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">+ New Invoice</button>
+        <button onClick={() => { setFormCust(''); setFormEmail(''); setFormPhone(''); setFormWh(''); setFormNotes(''); setFormTax(0); setFormItems([]); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ New Invoice</button>
       </div>
 
-      <div className="glass-card overflow-hidden">
-        <table className="table-gym">
+      <div className="premium-card overflow-hidden">
+        <table className="table-premium">
           <thead>
             <tr><th>Invoice #</th><th>Customer</th><th>Warehouse</th><th>Total</th><th>Status</th><th>Date</th><th className="text-right">Actions</th></tr>
           </thead>
@@ -94,10 +94,10 @@ export default function Invoices() {
             <h2 className="text-lg font-bold text-gray-900 mb-4">New Invoice</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Customer *</label><input required value={formCust} onChange={e => setFormCust(e.target.value)} className="input-gym w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label><input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="input-gym w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label><input value={formPhone} onChange={e => setFormPhone(e.target.value)} className="input-gym w-full" /></div>
-                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label><select required value={formWh} onChange={e => setFormWh(e.target.value)} className="input-gym w-full"><option value="">Select</option>{warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div>
+                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Customer *</label><input required value={formCust} onChange={e => setFormCust(e.target.value)} className="input-apple w-full" /></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label><input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="input-apple w-full" /></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label><input value={formPhone} onChange={e => setFormPhone(e.target.value)} className="input-apple w-full" /></div>
+                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label><select required value={formWh} onChange={e => setFormWh(e.target.value)} className="input-apple w-full"><option value="">Select</option>{warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -107,24 +107,24 @@ export default function Invoices() {
                 <div className="space-y-2">
                   {formItems.map((line, i) => (
                     <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-xl p-2">
-                      <select value={line.itemId} onChange={e => handleLine(i, 'itemId', e.target.value)} className="input-gym flex-1 text-xs py-2">
+                      <select value={line.itemId} onChange={e => handleLine(i, 'itemId', e.target.value)} className="input-apple flex-1 text-xs py-2">
                         <option value="">Select</option>
                         {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price})</option>)}
                       </select>
-                      <input type="number" min="1" value={line.quantity} onChange={e => handleLine(i, 'quantity', parseInt(e.target.value) || 1)} className="input-gym w-20 text-xs text-center py-2" />
-                      <input type="number" step="0.01" min="0" value={line.unitPrice} onChange={e => handleLine(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="input-gym w-24 text-xs py-2" />
+                      <input type="number" min="1" value={line.quantity} onChange={e => handleLine(i, 'quantity', parseInt(e.target.value) || 1)} className="input-apple w-20 text-xs text-center py-2" />
+                      <input type="number" step="0.01" min="0" value={line.unitPrice} onChange={e => handleLine(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="input-apple w-24 text-xs py-2" />
                       <button type="button" onClick={() => handleRemove(i)} className="text-red-500 hover:text-red-700 text-lg px-1">&times;</button>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Tax ($)</label><input type="number" step="0.01" min="0" value={formTax} onChange={e => setFormTax(parseFloat(e.target.value) || 0)} className="input-gym w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label><input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-gym w-full" /></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Tax ($)</label><input type="number" step="0.01" min="0" value={formTax} onChange={e => setFormTax(parseFloat(e.target.value) || 0)} className="input-apple w-full" /></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label><input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-apple w-full" /></div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Create Invoice</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-light">Cancel</button>
+                <button type="submit" className="btn-premium">Create Invoice</button>
               </div>
             </form>
           </div>

@@ -44,48 +44,48 @@ export default function ItemForm({ categories, editItem, onSave, onClose }: Item
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 sm:col-span-1">
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
-                <input required value={name} onChange={e => setName(e.target.value)} className="input-gym w-full" placeholder="e.g. Olympic Barbell" />
+                <input required value={name} onChange={e => setName(e.target.value)} className="input-apple w-full" placeholder="e.g. Olympic Barbell" />
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SKU</label>
-                <input required value={sku} onChange={e => setSku(e.target.value)} className="input-gym w-full" placeholder="e.g. BB-001" />
+                <input required value={sku} onChange={e => setSku(e.target.value)} className="input-apple w-full" placeholder="e.g. BB-001" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Category</label>
-                <select value={category} onChange={e => setCategory(e.target.value)} className="input-gym w-full">
+                <select value={category} onChange={e => setCategory(e.target.value)} className="input-apple w-full">
                   {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Brand</label>
-                <input value={brand} onChange={e => setBrand(e.target.value)} className="input-gym w-full" placeholder="e.g. Rogue" />
+                <input value={brand} onChange={e => setBrand(e.target.value)} className="input-apple w-full" placeholder="e.g. Rogue" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
-                <input value={location} onChange={e => setLocation(e.target.value)} className="input-gym w-full" placeholder="e.g. Strength Area" />
+                <input value={location} onChange={e => setLocation(e.target.value)} className="input-apple w-full" placeholder="e.g. Strength Area" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Condition</label>
-                <select value={condition} onChange={e => setCondition(e.target.value)} className="input-gym w-full">
+                <select value={condition} onChange={e => setCondition(e.target.value)} className="input-apple w-full">
                   {conditions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Quantity</label>
-                <input required type="number" min="0" value={quantity} onChange={e => setQuantity(e.target.value)} className="input-gym w-full" />
+                <input required type="number" min="0" value={quantity} onChange={e => setQuantity(e.target.value)} className="input-apple w-full" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Min Stock</label>
-                <input required type="number" min="0" value={minStock} onChange={e => setMinStock(e.target.value)} className="input-gym w-full" />
+                <input required type="number" min="0" value={minStock} onChange={e => setMinStock(e.target.value)} className="input-apple w-full" />
               </div>
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Price ($)</label>
-                <input required type="number" step="0.01" min="0" value={price} onChange={e => setPrice(e.target.value)} className="input-gym w-full" />
+                <input required type="number" step="0.01" min="0" value={price} onChange={e => setPrice(e.target.value)} className="input-apple w-full" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-              <button type="submit" className="btn-primary">{editItem ? 'Update' : 'Add Item'}</button>
+              <button type="button" onClick={onClose} className="btn-light">Cancel</button>
+              <button type="submit" className="btn-premium">{editItem ? 'Update' : 'Add Item'}</button>
             </div>
           </form>
         </div>

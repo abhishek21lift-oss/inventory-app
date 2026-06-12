@@ -92,7 +92,7 @@ export default function Items() {
           <h1 className="text-2xl font-bold text-gray-900">Items</h1>
           <p className="text-sm text-gray-500 mt-0.5">{items.length} total</p>
         </div>
-        <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">
+        <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
           + Add Item
         </button>
       </div>

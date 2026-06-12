@@ -35,16 +35,16 @@ export default function Warehouses() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Warehouses</h1><p className="text-sm text-gray-500 mt-0.5">{warehouses.length} locations</p></div>
-        <button onClick={() => { setEditWh(undefined); setName(''); setLocation(''); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">+ Add Warehouse</button>
+        <button onClick={() => { setEditWh(undefined); setName(''); setLocation(''); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ Add Warehouse</button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {warehouses.map(wh => (
-          <div key={wh.id} className="gradient-card p-5">
+          <div key={wh.id} className="premium-card p-5">
             <div className="flex items-start justify-between mb-3">
               <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">🏭</div>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                <button onClick={() => { setEditWh(wh); setName(wh.name); setLocation(wh.location); setShowForm(true) }} className="btn-secondary text-xs px-2.5 py-1.5">Edit</button>
+                <button onClick={() => { setEditWh(wh); setName(wh.name); setLocation(wh.location); setShowForm(true) }} className="btn-light text-xs px-2.5 py-1.5">Edit</button>
                 <button onClick={() => handleDelete(wh.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Delete</button>
               </div>
             </div>
@@ -64,15 +64,15 @@ export default function Warehouses() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
-                <input required value={name} onChange={e => setName(e.target.value)} className="input-gym w-full" placeholder="e.g. Main Warehouse" />
+                <input required value={name} onChange={e => setName(e.target.value)} className="input-apple w-full" placeholder="e.g. Main Warehouse" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
-                <input value={location} onChange={e => setLocation(e.target.value)} className="input-gym w-full" placeholder="e.g. Downtown" />
+                <input value={location} onChange={e => setLocation(e.target.value)} className="input-apple w-full" placeholder="e.g. Downtown" />
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">{editWh ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-light">Cancel</button>
+                <button type="submit" className="btn-premium">{editWh ? 'Update' : 'Create'}</button>
               </div>
             </form>
           </div>

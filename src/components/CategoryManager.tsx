@@ -35,10 +35,10 @@ export default function CategoryManager({ categories, onAdd, onDelete }: Categor
           value={name}
           onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          className="input-gym flex-1"
+          className="input-apple flex-1"
           placeholder="New category name..."
         />
-        <button onClick={handleAdd} className="btn-primary text-sm px-4">Add</button>
+        <button onClick={handleAdd} className="btn-premium text-sm px-4">Add</button>
       </div>
       <div className="flex flex-wrap gap-2">
         {categories.map((c, i) => (

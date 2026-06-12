@@ -22,14 +22,14 @@ export default function SearchBar({ search, onSearchChange, categoryFilter, onCa
           placeholder="Search items..."
           value={search}
           onChange={e => onSearchChange(e.target.value)}
-          className="input-gym w-full pl-10 pr-4"
+          className="input-apple w-full pl-10 pr-4"
         />
       </div>
       <div className="relative min-w-[150px]">
         <select
           value={categoryFilter}
           onChange={e => onCategoryChange(e.target.value)}
-          className="input-gym w-full"
+          className="input-apple w-full"
         >
           <option value="">All Categories</option>
           {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -39,7 +39,7 @@ export default function SearchBar({ search, onSearchChange, categoryFilter, onCa
         <select
           value={conditionFilter}
           onChange={e => onConditionChange(e.target.value)}
-          className="input-gym w-full"
+          className="input-apple w-full"
         >
           {conditions.map(c => <option key={c} value={c}>{c || 'All Conditions'}</option>)}
         </select>

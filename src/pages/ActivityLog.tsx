@@ -19,7 +19,7 @@ export default function ActivityLogPage() {
         <p className="text-sm text-gray-500 mt-0.5">{logs.length} events</p>
       </div>
 
-      <div className="glass-card overflow-hidden">
+      <div className="premium-card overflow-hidden">
         {logs.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-4xl mb-3 opacity-50">📜</div>

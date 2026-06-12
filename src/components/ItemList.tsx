@@ -46,7 +46,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 export default function ItemList({ items, sortField, sortDir, onSort, onEdit, onDelete, onDuplicate, onAdjustStock, onSelectItem }: ItemListProps) {
   if (items.length === 0) {
     return (
-      <div className="glass-card text-center py-16 px-6">
+      <div className="premium-card text-center py-16 px-6">
         <div className="text-5xl mb-4 opacity-30">📦</div>
         <p className="text-gray-500 text-lg font-medium">No items found</p>
         <p className="text-gray-400 text-sm mt-1">Try adjusting your search.</p>
@@ -55,9 +55,9 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
   }
 
   return (
-    <div className="glass-card overflow-hidden">
+    <div className="premium-card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="table-gym">
+        <table className="table-premium">
           <thead>
             <tr>
               {columns.map(col => (
@@ -121,7 +121,7 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
                   </td>
                   <td className="text-right" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
-                      <button onClick={() => onDuplicate(item.id)} className="btn-icon text-xs" title="Duplicate">📋</button>
+                      <button onClick={() => onDuplicate(item.id)} className="btn-ghost text-xs" title="Duplicate">📋</button>
                       <button onClick={() => onEdit(item)} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-gray-200">Edit</button>
                       <button onClick={() => onDelete(item.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Delete</button>
                     </div>

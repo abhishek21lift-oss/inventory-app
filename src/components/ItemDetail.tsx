@@ -34,7 +34,7 @@ export default function ItemDetail({ item, onClose, onEdit, onAdjustStock }: Ite
             <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
           </div>
 
-          <div className="glass-card p-5 space-y-4">
+          <div className="premium-card p-5 space-y-4">
             <div className="grid grid-cols-2 gap-5 text-sm">
               <div>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Category</p>
@@ -76,8 +76,8 @@ export default function ItemDetail({ item, onClose, onEdit, onAdjustStock }: Ite
           </div>
 
           <div className="flex gap-2">
-            <button onClick={() => { onEdit(item); onClose() }} className="btn-primary flex-1 py-2.5 text-sm">Edit Item</button>
-            <button onClick={() => { onAdjustStock(item.id, 1, 'Manual restock'); onClose() }} className="btn-secondary px-4 py-2.5 text-sm">+ Restock</button>
+            <button onClick={() => { onEdit(item); onClose() }} className="btn-premium flex-1 py-2.5 text-sm">Edit Item</button>
+            <button onClick={() => { onAdjustStock(item.id, 1, 'Manual restock'); onClose() }} className="btn-light px-4 py-2.5 text-sm">+ Restock</button>
           </div>
 
           <div>

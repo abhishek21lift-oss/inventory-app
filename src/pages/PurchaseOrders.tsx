@@ -57,11 +57,11 @@ export default function PurchaseOrders() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1><p className="text-sm text-gray-500 mt-0.5">{pos.length} orders</p></div>
-        <button onClick={() => { setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">+ New PO</button>
+        <button onClick={() => { setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ New PO</button>
       </div>
 
-      <div className="glass-card overflow-hidden">
-        <table className="table-gym">
+      <div className="premium-card overflow-hidden">
+        <table className="table-premium">
           <thead>
             <tr><th>PO #</th><th>Supplier</th><th>Warehouse</th><th>Total</th><th>Status</th><th>Created</th><th className="text-right">Actions</th></tr>
           </thead>
@@ -97,14 +97,14 @@ export default function PurchaseOrders() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Supplier *</label>
-                  <select required value={formSupplier} onChange={e => setFormSupplier(e.target.value)} className="input-gym w-full">
+                  <select required value={formSupplier} onChange={e => setFormSupplier(e.target.value)} className="input-apple w-full">
                     <option value="">Select supplier</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label>
-                  <select required value={formWarehouse} onChange={e => setFormWarehouse(e.target.value)} className="input-gym w-full">
+                  <select required value={formWarehouse} onChange={e => setFormWarehouse(e.target.value)} className="input-apple w-full">
                     <option value="">Select warehouse</option>
                     {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                   </select>
@@ -112,7 +112,7 @@ export default function PurchaseOrders() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label>
-                <input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-gym w-full" placeholder="Optional notes" />
+                <input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-apple w-full" placeholder="Optional notes" />
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -122,20 +122,20 @@ export default function PurchaseOrders() {
                 <div className="space-y-2">
                   {formItems.map((line, i) => (
                     <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-xl p-2">
-                      <select value={line.itemId} onChange={e => handleLineChange(i, 'itemId', e.target.value)} className="input-gym flex-1 text-xs py-2">
+                      <select value={line.itemId} onChange={e => handleLineChange(i, 'itemId', e.target.value)} className="input-apple flex-1 text-xs py-2">
                         <option value="">Select item</option>
                         {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price})</option>)}
                       </select>
-                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(i, 'quantity', parseInt(e.target.value) || 1)} className="input-gym w-20 text-xs text-center py-2" />
-                      <input type="number" step="0.01" min="0" value={line.unitCost} onChange={e => handleLineChange(i, 'unitCost', parseFloat(e.target.value) || 0)} className="input-gym w-24 text-xs py-2" />
+                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(i, 'quantity', parseInt(e.target.value) || 1)} className="input-apple w-20 text-xs text-center py-2" />
+                      <input type="number" step="0.01" min="0" value={line.unitCost} onChange={e => handleLineChange(i, 'unitCost', parseFloat(e.target.value) || 0)} className="input-apple w-24 text-xs py-2" />
                       <button type="button" onClick={() => handleRemoveLine(i)} className="text-red-500 hover:text-red-700 text-lg px-1">&times;</button>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Create PO</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-light">Cancel</button>
+                <button type="submit" className="btn-premium">Create PO</button>
               </div>
             </form>
           </div>
