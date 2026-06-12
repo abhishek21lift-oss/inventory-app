@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { InventoryProvider, useInventory } from './InventoryProvider'
 import SearchBar from './components/SearchBar'
 import ItemList from './components/ItemList'
 import ItemForm from './components/ItemForm'
+import ItemDetail from './components/ItemDetail'
 import CategoryManager from './components/CategoryManager'
-import type { Item } from './types'
+import type { Item, SortField, SortDir } from './types'
 import * as api from './api'
 
 function generateId() {
@@ -17,51 +18,115 @@ function Dashboard() {
 
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [conditionFilter, setConditionFilter] = useState('')
+  const [sortField, setSortField] = useState<SortField>('updatedAt')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Item | undefined>()
   const [showCategories, setShowCategories] = useState(false)
+  const [detailItem, setDetailItem] = useState<Item | undefined>()
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const filtered = items.filter(item => {
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  const filtered = useMemo(() => {
+    let result = [...items]
     const q = search.toLowerCase()
-    const matchSearch = !q || item.name.toLowerCase().includes(q) ||
-      item.sku.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q)
-    const matchCategory = !categoryFilter || item.category === categoryFilter
-    return matchSearch && matchCategory
-  })
+    if (q) result = result.filter(i => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q))
+    if (categoryFilter) result = result.filter(i => i.category === categoryFilter)
+    if (conditionFilter) result = result.filter(i => i.condition === conditionFilter)
+    result.sort((a, b) => {
+      let cmp = 0
+      const fa = (a[sortField] || '').toString().toLowerCase()
+      const fb = (b[sortField] || '').toString().toLowerCase()
+      if (sortField === 'quantity' || sortField === 'price') {
+        cmp = (a[sortField] as number) - (b[sortField] as number)
+      } else {
+        cmp = fa.localeCompare(fb)
+      }
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+    return result
+  }, [items, search, categoryFilter, conditionFilter, sortField, sortDir])
 
   const totalValue = items.reduce((s, i) => s + i.price * i.quantity, 0)
   const lowStockCount = items.filter(i => i.quantity <= i.minStock && i.quantity > 0).length
   const outOfStockCount = items.filter(i => i.quantity === 0).length
 
+  const handleSort = (field: SortField) => {
+    if (field === sortField) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortField(field); setSortDir('asc') }
+  }
+
   const handleSave = useCallback(async (data: Partial<Item> & { id?: string; createdAt?: string }) => {
-    if (data.id) {
-      await api.updateItem(data.id, data)
-      dispatch({ type: 'UPDATE_ITEM', payload: data as Item })
-    } else {
-      const newItem: Item = {
-        id: generateId(),
-        name: data.name!,
-        sku: data.sku!,
-        category: data.category!,
-        brand: data.brand || '',
-        location: data.location || '',
-        condition: data.condition || 'New',
-        quantity: data.quantity!,
-        minStock: data.minStock!,
-        price: data.price!,
-        createdAt: new Date().toISOString().slice(0, 10),
+    try {
+      if (data.id) {
+        await api.updateItem(data.id, data)
+        dispatch({ type: 'UPDATE_ITEM', payload: data as Item })
+        showToast('Equipment updated')
+      } else {
+        const newItem: Item = {
+          id: generateId(),
+          name: data.name!,
+          sku: data.sku!,
+          category: data.category!,
+          brand: data.brand || '',
+          location: data.location || '',
+          condition: data.condition || 'New',
+          quantity: data.quantity!,
+          minStock: data.minStock!,
+          price: data.price!,
+          createdAt: new Date().toISOString().slice(0, 10),
+        }
+        await api.createItem(newItem)
+        dispatch({ type: 'ADD_ITEM', payload: newItem })
+        showToast('Equipment added')
       }
-      await api.createItem(newItem)
-      dispatch({ type: 'ADD_ITEM', payload: newItem })
-    }
+    } catch { showToast('Failed to save', 'error') }
     setShowForm(false)
     setEditItem(undefined)
   }, [dispatch])
 
   const handleDelete = useCallback(async (id: string) => {
-    await api.deleteItem(id)
-    dispatch({ type: 'DELETE_ITEM', payload: id })
+    try {
+      await api.deleteItem(id)
+      dispatch({ type: 'DELETE_ITEM', payload: id })
+      showToast('Equipment deleted')
+    } catch { showToast('Failed to delete', 'error') }
   }, [dispatch])
+
+  const handleDuplicate = useCallback(async (id: string) => {
+    try {
+      const dup = await api.duplicateItem(id)
+      dispatch({ type: 'ADD_ITEM', payload: dup })
+      showToast('Equipment duplicated')
+    } catch { showToast('Failed to duplicate', 'error') }
+  }, [dispatch])
+
+  const handleAdjustStock = useCallback(async (id: string, change: number, note?: string) => {
+    try {
+      const res = await api.adjustStock(id, change, note)
+      const item = items.find(i => i.id === id)
+      if (item) dispatch({ type: 'UPDATE_ITEM', payload: { ...item, quantity: res.newQty, updatedAt: res.updatedAt } })
+      showToast(change > 0 ? `Restocked +${change}` : `Adjusted ${change}`)
+    } catch { showToast('Stock update failed', 'error') }
+  }, [dispatch, items])
+
+  const handleExportCSV = () => {
+    const header = 'Name,SKU,Category,Brand,Location,Condition,Quantity,Min Stock,Price,Value,Created\n'
+    const rows = items.map(i =>
+      `"${i.name}","${i.sku}","${i.category}","${i.brand}","${i.location}","${i.condition}",${i.quantity},${i.minStock},${i.price},${(i.price * i.quantity).toFixed(2)},"${i.createdAt}"`
+    ).join('\n')
+    const blob = new Blob([header + rows], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `gym-inventory-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+    showToast('CSV exported')
+  }
 
   const handleAddCategory = useCallback(async (name: string) => {
     const id = generateId()
@@ -99,20 +164,20 @@ function Dashboard() {
                 <p className="text-[10px] text-white/30 tracking-widest uppercase">Equipment &amp; Supplies</p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setShowCategories(!showCategories)}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5"
-              >
+            <div className="flex items-center gap-2">
+              <button onClick={handleExportCSV} className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5" title="Export CSV">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export
+              </button>
+              <button onClick={() => setShowCategories(!showCategories)} className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 Categories
               </button>
-              <button
-                onClick={() => { setEditItem(undefined); setShowForm(true) }}
-                className="btn-primary px-3.5 py-2 text-xs flex items-center gap-1.5"
-              >
+              <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-primary px-3.5 py-2 text-xs flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
@@ -185,10 +250,22 @@ function Dashboard() {
           onSearchChange={setSearch}
           categoryFilter={categoryFilter}
           onCategoryChange={setCategoryFilter}
+          conditionFilter={conditionFilter}
+          onConditionChange={setConditionFilter}
           categories={categories}
         />
 
-        <ItemList items={filtered} onEdit={(item) => { setEditItem(item); setShowForm(true) }} onDelete={handleDelete} />
+        <ItemList
+          items={filtered}
+          sortField={sortField}
+          sortDir={sortDir}
+          onSort={handleSort}
+          onEdit={(item) => { setEditItem(item); setShowForm(true) }}
+          onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
+          onAdjustStock={handleAdjustStock}
+          onSelectItem={setDetailItem}
+        />
       </main>
 
       {showForm && (
@@ -198,6 +275,21 @@ function Dashboard() {
           onSave={handleSave}
           onClose={() => { setShowForm(false); setEditItem(undefined) }}
         />
+      )}
+
+      {detailItem && (
+        <ItemDetail
+          item={detailItem}
+          onClose={() => setDetailItem(undefined)}
+          onEdit={(item) => { setEditItem(item); setShowForm(true) }}
+          onAdjustStock={handleAdjustStock}
+        />
+      )}
+
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
+        </div>
       )}
     </div>
   )
