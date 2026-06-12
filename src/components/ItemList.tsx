@@ -19,7 +19,7 @@ const catColors: Record<string, string> = {
 }
 
 const conditionColors: Record<string, string> = {
-  'New': 'text-[#00d4aa]', 'Good': 'text-[#64d2ff]', 'Fair': 'text-[#ff9f0a]', 'Needs Service': 'text-[#ff375f]',
+  'New': 'text-green-600', 'Good': 'text-blue-600', 'Fair': 'text-orange-600', 'Needs Service': 'text-red-600',
 }
 
 const columns: { field: SortField; label: string; align?: string }[] = [
@@ -37,7 +37,7 @@ const columns: { field: SortField; label: string; align?: string }[] = [
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`inline-flex ml-1 transition-opacity ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`}>
+    <span className={`inline-flex ml-1 transition-opacity text-[10px] ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`}>
       {dir === 'asc' ? '▲' : '▼'}
     </span>
   )
@@ -47,9 +47,9 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
   if (items.length === 0) {
     return (
       <div className="glass-card text-center py-16 px-6">
-        <div className="text-5xl mb-4">💪</div>
-        <p className="text-white/50 text-lg font-medium">No equipment found</p>
-        <p className="text-white/30 text-sm mt-1">Try adjusting your search or add new gear.</p>
+        <div className="text-5xl mb-4 opacity-30">📦</div>
+        <p className="text-gray-500 text-lg font-medium">No items found</p>
+        <p className="text-gray-400 text-sm mt-1">Try adjusting your search.</p>
       </div>
     )
   }
@@ -81,20 +81,20 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
               return (
                 <tr
                   key={item.id}
-                  className={`group transition-colors cursor-pointer ${isOut ? 'row-out' : isLow ? 'row-low' : ''}`}
+                  className={`group cursor-pointer transition-colors ${isOut ? 'row-out' : isLow ? 'row-low' : ''}`}
                   onClick={() => onSelectItem(item)}
                 >
-                  <td className="font-medium text-white">{item.name}</td>
-                  <td className="font-mono text-xs text-white/30">{item.sku}</td>
+                  <td className="font-semibold text-gray-800">{item.name}</td>
+                  <td className="font-mono text-xs text-gray-400">{item.sku}</td>
                   <td>
                     <span className={`cat-pill ${catColors[item.category] || 'cat-accessories'}`}>
                       {item.category}
                     </span>
                   </td>
-                  <td className="text-white/60">{item.brand || '—'}</td>
-                  <td className="text-white/60">{item.location || '—'}</td>
+                  <td className="text-gray-500">{item.brand || '—'}</td>
+                  <td className="text-gray-500">{item.location || '—'}</td>
                   <td>
-                    <span className={`font-medium text-xs ${conditionColors[item.condition] || 'text-white/40'}`}>
+                    <span className={`font-semibold text-xs ${conditionColors[item.condition] || 'text-gray-400'}`}>
                       {item.condition}
                     </span>
                   </td>
@@ -102,26 +102,28 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
                     <div className="inline-flex items-center gap-1.5">
                       <button
                         onClick={() => onAdjustStock(item.id, -1)}
-                        className="w-6 h-6 rounded-md bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition flex items-center justify-center text-sm font-bold"
-                        title="Decrease quantity"
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 transition flex items-center justify-center text-sm font-bold"
+                        title="Decrease"
                       >−</button>
-                      <span className="text-white font-medium min-w-[24px] text-center">{item.quantity}</span>
+                      <span className="text-gray-800 font-semibold min-w-[24px] text-center">{item.quantity}</span>
                       <button
                         onClick={() => onAdjustStock(item.id, 1)}
-                        className="w-6 h-6 rounded-md bg-white/5 hover:bg-[#00d4aa]/20 text-white/40 hover:text-[#00d4aa] transition flex items-center justify-center text-sm font-bold"
-                        title="Increase quantity"
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-green-100 text-gray-500 hover:text-green-600 transition flex items-center justify-center text-sm font-bold"
+                        title="Increase"
                       >+</button>
                     </div>
                   </td>
-                  <td className="text-right text-white/70">${item.price.toFixed(2)}</td>
+                  <td className="text-right">
+                    <span className="font-semibold text-gray-800">${item.price.toFixed(2)}</span>
+                  </td>
                   <td className="text-center" onClick={e => e.stopPropagation()}>
                     <StockBadge quantity={item.quantity} minStock={item.minStock} />
                   </td>
                   <td className="text-right" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => onDuplicate(item.id)} className="px-2 py-1.5 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition" title="Duplicate">📋</button>
-                      <button onClick={() => onEdit(item)} className="px-2 py-1.5 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition">Edit</button>
-                      <button onClick={() => onDelete(item.id)} className="px-2 py-1.5 text-xs rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition">Delete</button>
+                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button onClick={() => onDuplicate(item.id)} className="btn-icon text-xs" title="Duplicate">📋</button>
+                      <button onClick={() => onEdit(item)} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-gray-200">Edit</button>
+                      <button onClick={() => onDelete(item.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Delete</button>
                     </div>
                   </td>
                 </tr>

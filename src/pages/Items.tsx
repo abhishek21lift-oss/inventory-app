@@ -27,13 +27,14 @@ export default function Items() {
 
   const load = async () => {
     try {
-      const [its, cats] = await Promise.all([fetchItems({ search: search || undefined, category: categoryFilter || undefined, condition: conditionFilter || undefined }), fetchCategories()])
-      setItems(its)
-      setCategories(cats)
-    } catch { showToast('Failed to load items', 'error') }
+      const [its, cats] = await Promise.all([
+        fetchItems({ search: search || undefined, category: categoryFilter || undefined, condition: conditionFilter || undefined }),
+        fetchCategories()
+      ])
+      setItems(its); setCategories(cats)
+    } catch { showToast('Failed to load', 'error') }
     finally { setLoading(false) }
   }
-
   useEffect(() => { load() }, [])
 
   const filtered = useMemo(() => {
@@ -54,51 +55,44 @@ export default function Items() {
 
   const handleSave = useCallback(async (data: Partial<Item> & { id?: string; createdAt?: string }) => {
     try {
-      if (data.id) {
-        await updateItem(data.id, data)
-        showToast('Item updated')
-      } else {
-        const newItem: Item = {
+      if (data.id) { await updateItem(data.id, data); showToast('Item updated') }
+      else {
+        await createItem({
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
           name: data.name!, sku: data.sku!, category: data.category!,
           brand: data.brand || '', location: data.location || '', condition: data.condition || 'New',
           quantity: data.quantity!, minStock: data.minStock!, price: data.price!,
           createdAt: new Date().toISOString().slice(0, 10),
-        }
-        await createItem(newItem)
+        })
         showToast('Item added')
       }
       load()
     } catch { showToast('Failed to save', 'error') }
-    setShowForm(false)
-    setEditItem(undefined)
+    setShowForm(false); setEditItem(undefined)
   }, [])
 
   const handleDelete = useCallback(async (id: string) => {
-    try { await deleteItem(id); showToast('Item deleted'); load() }
-    catch { showToast('Failed to delete', 'error') }
+    try { await deleteItem(id); showToast('Deleted'); load() } catch { showToast('Delete failed', 'error') }
   }, [])
 
   const handleDuplicate = useCallback(async (id: string) => {
-    try { await duplicateItem(id); showToast('Item duplicated'); load() }
-    catch { showToast('Failed to duplicate', 'error') }
+    try { await duplicateItem(id); showToast('Duplicated'); load() } catch { showToast('Duplicate failed', 'error') }
   }, [])
 
   const handleAdjustStock = useCallback(async (id: string, change: number, note?: string) => {
-    try { await adjustStock(id, change, note); showToast(change > 0 ? `Restocked +${change}` : `Adjusted ${change}`); load() }
-    catch { showToast('Stock update failed', 'error') }
+    try { await adjustStock(id, change, note); showToast(change > 0 ? `+${change}` : `${change}`); load() } catch { showToast('Stock failed', 'error') }
   }, [])
 
-  if (loading) return <div className="text-white/40 text-center py-20 text-lg">Loading items...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading items...</div>
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Items</h1>
-          <p className="text-sm text-white/40 mt-0.5">{items.length} total equipment & supplies</p>
+          <h1 className="text-2xl font-bold text-gray-900">Items</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{items.length} total</p>
         </div>
-        <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-primary px-4 py-2.5 text-sm flex items-center gap-1.5">
+        <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">
           + Add Item
         </button>
       </div>
@@ -118,14 +112,22 @@ export default function Items() {
       />
 
       {showForm && (
-        <ItemForm categories={categories} editItem={editItem} onSave={handleSave} onClose={() => { setShowForm(false); setEditItem(undefined) }} />
+        <ItemForm
+          categories={categories} editItem={editItem}
+          onSave={handleSave}
+          onClose={() => { setShowForm(false); setEditItem(undefined) }}
+        />
       )}
 
       {detailItem && (
-        <ItemDetail item={detailItem} onClose={() => setDetailItem(undefined)} onEdit={(item) => { setEditItem(item); setShowForm(true) }} onAdjustStock={handleAdjustStock} />
+        <ItemDetail
+          item={detailItem} onClose={() => setDetailItem(undefined)}
+          onEdit={(item) => { setEditItem(item); setShowForm(true) }}
+          onAdjustStock={handleAdjustStock}
+        />
       )}
 
-      {toast && <div className={`toast toast-${toast.type}`}>{toast.message}</div>}
+      {toast && <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>{toast.message}</div>}
     </div>
   )
 }

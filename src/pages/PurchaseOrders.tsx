@@ -16,33 +16,27 @@ export default function PurchaseOrders() {
     try {
       const [p, s, w, i] = await Promise.all([fetchPurchaseOrders(), fetchSuppliers(), fetchWarehouses(), fetchItems()])
       setPos(p); setSuppliers(s); setWarehouses(w); setItems(i)
-    } catch { show('Failed to load') }
-    finally { setLoading(false) }
+    } catch { show('Failed') } finally { setLoading(false) }
   }
   useEffect(() => { load() }, [])
 
-  const statusColor: Record<string, string> = { pending: 'text-[#ff9f0a]', received: 'text-[#00d4aa]', cancelled: 'text-[#ff375f]' }
+  const statusColor: Record<string, string> = { pending: 'badge-yellow', received: 'badge-green', cancelled: 'badge-red' }
 
   const handleReceive = async (id: string) => {
-    if (!confirm('Mark this PO as fully received? Stock will be added.')) return
-    try { await receivePurchaseOrder(id); show('PO received & stock updated'); load() } catch { show('Failed') }
+    if (!confirm('Mark as fully received? Stock will be added.')) return
+    try { await receivePurchaseOrder(id); show('PO received'); load() } catch { show('Failed') }
   }
-
   const handleCancel = async (id: string) => {
     if (!confirm('Cancel this PO?')) return
-    try { await cancelPurchaseOrder(id); show('PO cancelled'); load() } catch { show('Failed') }
+    try { await cancelPurchaseOrder(id); show('Cancelled'); load() } catch { show('Failed') }
   }
 
-  // PO form state
   const [formSupplier, setFormSupplier] = useState('')
   const [formWarehouse, setFormWarehouse] = useState('')
   const [formNotes, setFormNotes] = useState('')
   const [formItems, setFormItems] = useState<{ itemId: string; quantity: number; unitCost: number }[]>([])
-
   const handleAddLine = () => setFormItems(f => [...f, { itemId: items[0]?.id || '', quantity: 1, unitCost: 0 }])
-  const handleLineChange = (i: number, field: string, val: any) => {
-    setFormItems(f => { const n = [...f]; n[i] = { ...n[i], [field]: val }; return n })
-  }
+  const handleLineChange = (i: number, field: string, val: any) => setFormItems(f => { const n = [...f]; n[i] = { ...n[i], [field]: val }; return n })
   const handleRemoveLine = (i: number) => setFormItems(f => f.filter((_, idx) => idx !== i))
 
   const handleCreatePO = async (e: React.FormEvent) => {
@@ -51,19 +45,19 @@ export default function PurchaseOrders() {
     try {
       await createPurchaseOrder({ supplierId: formSupplier, warehouseId: formWarehouse, notes: formNotes, items: formItems })
       show('PO created'); setShowForm(false); setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); load()
-    } catch { show('Failed to create PO') }
+    } catch { show('Failed') }
   }
 
   const supplierMap = Object.fromEntries(suppliers.map(s => [s.id, s.name]))
   const warehouseMap = Object.fromEntries(warehouses.map(w => [w.id, w.name]))
 
-  if (loading) return <div className="text-white/40 text-center py-20 text-lg">Loading...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading...</div>
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-xl font-bold text-white">Purchase Orders</h1><p className="text-sm text-white/40 mt-0.5">{pos.length} orders</p></div>
-        <button onClick={() => { setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); setShowForm(true) }} className="btn-primary px-4 py-2.5 text-sm">+ New PO</button>
+        <div><h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1><p className="text-sm text-gray-500 mt-0.5">{pos.length} orders</p></div>
+        <button onClick={() => { setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); setShowForm(true) }} className="btn-primary flex items-center gap-1.5">+ New PO</button>
       </div>
 
       <div className="glass-card overflow-hidden">
@@ -74,20 +68,20 @@ export default function PurchaseOrders() {
           <tbody>
             {pos.map(po => (
               <tr key={po.id} className="group">
-                <td className="font-mono text-xs text-white font-medium">{po.poNumber}</td>
-                <td className="text-white/70">{supplierMap[po.supplierId] || po.supplierId}</td>
-                <td className="text-white/70">{warehouseMap[po.warehouseId] || po.warehouseId}</td>
-                <td className="text-white font-medium">${po.totalAmount.toFixed(2)}</td>
-                <td><span className={`text-xs font-medium capitalize ${statusColor[po.status] || 'text-white/40'}`}>{po.status}</span></td>
-                <td className="text-xs text-white/30">{new Date(po.createdAt).toLocaleDateString()}</td>
+                <td className="font-mono text-xs font-semibold text-gray-800">{po.poNumber}</td>
+                <td className="text-gray-600">{supplierMap[po.supplierId] || po.supplierId}</td>
+                <td className="text-gray-600">{warehouseMap[po.warehouseId] || po.warehouseId}</td>
+                <td className="text-gray-800 font-semibold">${po.totalAmount.toFixed(2)}</td>
+                <td><span className={`badge ${statusColor[po.status] || 'badge-blue'}`}>{po.status}</span></td>
+                <td className="text-xs text-gray-400">{new Date(po.createdAt).toLocaleDateString()}</td>
                 <td className="text-right opacity-0 group-hover:opacity-100 transition">
                   {po.status === 'pending' && (
                     <>
-                      <button onClick={() => handleReceive(po.id)} className="px-2 py-1.5 text-xs rounded-lg bg-[#00d4aa]/10 hover:bg-[#00d4aa]/20 text-[#00d4aa]">Receive</button>
-                      <button onClick={() => handleCancel(po.id)} className="px-2 py-1.5 text-xs rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 ml-1">Cancel</button>
+                      <button onClick={() => handleReceive(po.id)} className="text-xs bg-green-50 text-green-700 px-2.5 py-1.5 rounded-lg hover:bg-green-100 border border-green-100 mr-1">Receive</button>
+                      <button onClick={() => handleCancel(po.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Cancel</button>
                     </>
                   )}
-                  {po.status === 'received' && <span className="text-xs text-white/30">✓ Received {po.receivedAt ? new Date(po.receivedAt).toLocaleDateString() : ''}</span>}
+                  {po.status === 'received' && <span className="text-xs text-green-600 font-medium">Received {po.receivedAt ? new Date(po.receivedAt).toLocaleDateString() : ''}</span>}
                 </td>
               </tr>
             ))}
@@ -96,54 +90,52 @@ export default function PurchaseOrders() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md overflow-y-auto py-8" onClick={() => setShowForm(false)}>
-          <div className="gradient-card w-full max-w-2xl mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-white mb-4">New Purchase Order</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm overflow-y-auto py-8" onClick={() => setShowForm(false)}>
+          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-2xl mx-4 p-6 border border-gray-100" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">New Purchase Order</h2>
             <form onSubmit={handleCreatePO} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-white/50 mb-1.5">Supplier *</label>
-                  <select required value={formSupplier} onChange={e => setFormSupplier(e.target.value)} className="input-neon w-full px-3 py-2.5 text-sm">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Supplier *</label>
+                  <select required value={formSupplier} onChange={e => setFormSupplier(e.target.value)} className="input-gym w-full">
                     <option value="">Select supplier</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-white/50 mb-1.5">Warehouse *</label>
-                  <select required value={formWarehouse} onChange={e => setFormWarehouse(e.target.value)} className="input-neon w-full px-3 py-2.5 text-sm">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label>
+                  <select required value={formWarehouse} onChange={e => setFormWarehouse(e.target.value)} className="input-gym w-full">
                     <option value="">Select warehouse</option>
                     {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5">Notes</label>
-                <input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-neon w-full px-3 py-2.5 text-sm" placeholder="Optional notes" />
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label>
+                <input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-gym w-full" placeholder="Optional notes" />
               </div>
-
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Items</label>
-                  <button type="button" onClick={handleAddLine} className="text-xs text-[#5e5ce6] hover:underline">+ Add Item</button>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items</label>
+                  <button type="button" onClick={handleAddLine} className="text-xs text-blue-600 hover:underline font-semibold">+ Add Item</button>
                 </div>
                 <div className="space-y-2">
                   {formItems.map((line, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <select value={line.itemId} onChange={e => handleLineChange(i, 'itemId', e.target.value)} className="input-neon flex-1 px-3 py-2 text-xs">
+                    <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-xl p-2">
+                      <select value={line.itemId} onChange={e => handleLineChange(i, 'itemId', e.target.value)} className="input-gym flex-1 text-xs py-2">
                         <option value="">Select item</option>
-                        {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price.toFixed(2)})</option>)}
+                        {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price})</option>)}
                       </select>
-                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(i, 'quantity', parseInt(e.target.value) || 1)} className="input-neon w-20 px-3 py-2 text-xs text-center" placeholder="Qty" />
-                      <input type="number" step="0.01" min="0" value={line.unitCost} onChange={e => handleLineChange(i, 'unitCost', parseFloat(e.target.value) || 0)} className="input-neon w-24 px-3 py-2 text-xs" placeholder="$ Cost" />
-                      <button type="button" onClick={() => handleRemoveLine(i)} className="text-red-400 hover:text-red-300 text-xs px-2">&times;</button>
+                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(i, 'quantity', parseInt(e.target.value) || 1)} className="input-gym w-20 text-xs text-center py-2" />
+                      <input type="number" step="0.01" min="0" value={line.unitCost} onChange={e => handleLineChange(i, 'unitCost', parseFloat(e.target.value) || 0)} className="input-gym w-24 text-xs py-2" />
+                      <button type="button" onClick={() => handleRemoveLine(i)} className="text-red-500 hover:text-red-700 text-lg px-1">&times;</button>
                     </div>
                   ))}
                 </div>
               </div>
-
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary px-5 py-2.5 text-sm">Cancel</button>
-                <button type="submit" className="btn-primary px-5 py-2.5 text-sm">Create PO</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Create PO</button>
               </div>
             </form>
           </div>
