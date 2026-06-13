@@ -50,7 +50,7 @@ export default function Invoices() {
 
   const whMap = Object.fromEntries(warehouses.map(w => [w.id, w.name]))
 
-  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading...</div>
 
   return (
     <div className="space-y-6">
@@ -59,7 +59,7 @@ export default function Invoices() {
           <h1 className="text-2xl font-bold">
             <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">Invoices</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{invoices.length} total</p>
+          <p className="text-sm text-blue-200/70 mt-0.5">{invoices.length} total</p>
         </div>
         <button onClick={() => { setFormCust(''); setFormEmail(''); setFormPhone(''); setFormWh(''); setFormNotes(''); setFormTax(0); setFormItems([]); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ New Invoice</button>
       </div>

@@ -9,7 +9,7 @@ export default function ActivityLogPage() {
 
   useEffect(() => { fetchActivities(200).then(setLogs).finally(() => setLoading(false)) }, [])
 
-  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading...</div>
 
   const actionIcons: Record<string, { icon: string; bg: string }> = {
     'PO Received': { icon: '📥', bg: 'from-emerald-100 to-green-100' },
@@ -24,7 +24,7 @@ export default function ActivityLogPage() {
         <h1 className="text-2xl font-bold">
           <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-red-400 bg-clip-text text-transparent">Activity Log</span>
         </h1>
-        <p className="text-sm text-gray-400 mt-0.5">{logs.length} events</p>
+        <p className="text-sm text-blue-200/70 mt-0.5">{logs.length} events</p>
       </div>
 
       <div className="premium-card overflow-hidden">

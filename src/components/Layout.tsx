@@ -27,12 +27,12 @@ export default function Layout() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <NavLink to="/" className="flex items-center gap-3 shrink-0 group">
-              <motion.div
+              <motion.img
                 whileHover={{ scale: 1.1, rotate: -5 }}
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-1 ring-white/30"
-              >
-                💪
-              </motion.div>
+                src="/logo.png"
+                alt="Logo"
+                className="w-10 h-10 rounded-xl shadow-lg shadow-purple-500/30 ring-1 ring-white/30 object-cover"
+              />
               <div className="hidden sm:block">
                 <h1 className="text-sm font-extrabold tracking-tight leading-tight">
                   <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Inventory</span>

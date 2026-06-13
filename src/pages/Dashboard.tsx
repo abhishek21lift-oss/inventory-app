@@ -76,7 +76,7 @@ export default function Dashboard() {
     <div className="flex items-center justify-center h-96">
       <div className="text-center">
         <div className="text-6xl mb-4 opacity-30 animate-pulse">📊</div>
-        <p className="text-gray-400 text-lg font-medium">Failed to load dashboard</p>
+        <p className="text-white/60 text-lg font-medium">Failed to load dashboard</p>
         <button onClick={() => window.location.reload()} className="btn-premium mt-4">Retry</button>
       </div>
     </div>
@@ -279,7 +279,7 @@ export default function Dashboard() {
           {data.lowStockItems.length === 0 ? (
             <div className="flex flex-col items-center py-8">
               <span className="text-4xl mb-3">✅</span>
-              <p className="text-gray-400 text-sm font-medium">All stock levels healthy</p>
+              <p className="text-gray-500 text-sm font-medium">All stock levels healthy</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -322,7 +322,7 @@ export default function Dashboard() {
           {data.recentActivity.length === 0 ? (
             <div className="flex flex-col items-center py-8">
               <span className="text-4xl mb-3">📭</span>
-              <p className="text-gray-400 text-sm font-medium">No activity yet</p>
+              <p className="text-gray-500 text-sm font-medium">No activity yet</p>
             </div>
           ) : (
             <div className="space-y-1">

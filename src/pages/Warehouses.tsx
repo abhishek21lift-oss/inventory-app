@@ -76,7 +76,7 @@ export default function Warehouses() {
     <div className="flex items-center justify-center h-96">
       <div className="text-center">
         <div className="text-5xl mb-4 opacity-30">🏭</div>
-        <p className="text-gray-400 text-lg font-medium">No warehouse found</p>
+        <p className="text-white/60 text-lg font-medium">No warehouse found</p>
         <Link to="/items" className="btn-premium mt-4 inline-flex">Go to Items</Link>
       </div>
     </div>

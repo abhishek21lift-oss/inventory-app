@@ -28,7 +28,7 @@ export default function Suppliers() {
     try { await deleteSupplier(id); show('Deleted'); load() } catch { show('Failed') }
   }
 
-  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading...</div>
 
   return (
     <div className="space-y-6">
@@ -37,7 +37,7 @@ export default function Suppliers() {
           <h1 className="text-2xl font-bold">
             <span className="bg-gradient-to-r from-orange-400 via-rose-400 to-pink-400 bg-clip-text text-transparent">Suppliers</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{suppliers.length} vendors</p>
+          <p className="text-sm text-blue-200/70 mt-0.5">{suppliers.length} vendors</p>
         </div>
         <button onClick={() => { setEdit(undefined); setForm({ name: '', contactPerson: '', email: '', phone: '', address: '' }); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ Add Supplier</button>
       </div>

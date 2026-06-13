@@ -51,7 +51,7 @@ export default function PurchaseOrders() {
   const supplierMap = Object.fromEntries(suppliers.map(s => [s.id, s.name]))
   const warehouseMap = Object.fromEntries(warehouses.map(w => [w.id, w.name]))
 
-  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading...</div>
 
   return (
     <div className="space-y-6">
@@ -60,7 +60,7 @@ export default function PurchaseOrders() {
           <h1 className="text-2xl font-bold">
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-violet-400 bg-clip-text text-transparent">Purchase Orders</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{pos.length} orders</p>
+          <p className="text-sm text-blue-200/70 mt-0.5">{pos.length} orders</p>
         </div>
         <button onClick={() => { setFormSupplier(''); setFormWarehouse(''); setFormNotes(''); setFormItems([]); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ New PO</button>
       </div>

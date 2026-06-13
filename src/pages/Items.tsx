@@ -83,7 +83,7 @@ export default function Items() {
     try { await adjustStock(id, change, note); showToast(change > 0 ? `+${change}` : `${change}`); load() } catch { showToast('Stock failed', 'error') }
   }, [])
 
-  if (loading) return <div className="text-center py-20 text-lg text-gray-400 font-medium">Loading items...</div>
+  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading items...</div>
 
   return (
     <div className="space-y-6">
@@ -92,7 +92,7 @@ export default function Items() {
           <h1 className="text-2xl font-bold">
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Items</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{items.length} total</p>
+          <p className="text-sm text-blue-200/70 mt-0.5">{items.length} total</p>
         </div>
         <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
           + Add Item

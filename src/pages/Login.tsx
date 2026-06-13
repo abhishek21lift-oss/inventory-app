@@ -37,14 +37,14 @@ export default function Login() {
         <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-2xl shadow-purple-500/25">
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 sm:p-9">
             <div className="text-center mb-8">
-              <motion.div
+              <motion.img
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
-                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-3xl mx-auto shadow-xl shadow-purple-500/25 mb-4"
-              >
-                💪
-              </motion.div>
+                src="/logo.png"
+                alt="Logo"
+                className="w-16 h-16 rounded-2xl mx-auto shadow-xl shadow-purple-500/25 mb-4 object-cover"
+              />
               <h1 className="text-xl font-extrabold">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Inventory System</span>
               </h1>
