@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts'
 
-const COLORS = ['#0071e3', '#5856D6', '#34C759', '#FF9500', '#FF2D55', '#5AC8FA', '#FFCC00']
+const COLORS = ['#0071e3', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#eab308']
 
 const catColorMap: Record<string, string> = {
   'Cardio': 'cat-cardio', 'Strength': 'cat-strength', 'Free Weights': 'cat-free-weights',
@@ -64,11 +64,11 @@ export default function Warehouses() {
 
   if (loading) return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-36 bg-gray-100 rounded-3xl" />
+      <div className="h-36 bg-white/10 rounded-3xl" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-gray-100 rounded-2xl" />)}
+        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-white/10 rounded-2xl" />)}
       </div>
-      <div className="h-72 bg-gray-100 rounded-2xl" />
+      <div className="h-72 bg-white/10 rounded-2xl" />
     </div>
   )
 
@@ -76,7 +76,7 @@ export default function Warehouses() {
     <div className="flex items-center justify-center h-96">
       <div className="text-center">
         <div className="text-5xl mb-4 opacity-30">🏭</div>
-        <p className="text-gray-500 text-lg font-medium">No warehouse found</p>
+        <p className="text-gray-400 text-lg font-medium">No warehouse found</p>
         <Link to="/items" className="btn-premium mt-4 inline-flex">Go to Items</Link>
       </div>
     </div>
@@ -84,11 +84,10 @@ export default function Warehouses() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-
-      {/* Hero */}
-      <motion.div variants={fadeUp} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(0,113,227,0.25),transparent_60%)]" />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-[#5856D6]/20 rounded-full blur-[100px]" />
+      <motion.div variants={fadeUp} className="relative overflow-hidden rounded-3xl hero-gradient text-white shadow-2xl shadow-purple-500/10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.3),transparent_60%)]" />
+        <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/15 rounded-full blur-[60px]" />
         <div className="relative p-6 sm:p-8">
           <div className="flex items-start justify-between">
             <div>
@@ -97,7 +96,7 @@ export default function Warehouses() {
                 <span className="text-[10px] text-blue-200 font-semibold uppercase tracking-widest">{warehouse.isActive ? 'Active' : 'Inactive'}</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg shadow-blue-500/25">🏭</div>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25">🏭</div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{warehouse.name}</h1>
                   <p className="text-blue-200/70 text-sm mt-0.5 font-medium">{warehouse.location || 'No location set'} · ID: {warehouse.id}</p>
@@ -119,13 +118,12 @@ export default function Warehouses() {
         </div>
       </motion.div>
 
-      {/* Stats */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Items', value: items.length, icon: '📦', color: '#0071e3' },
-          { label: 'Total Value', value: `$${totalValue.toLocaleString()}`, icon: '💰', color: '#34C759' },
-          { label: 'Low Stock', value: lowItems.length, icon: '⚠️', color: '#FF9500', alert: lowItems.length > 0 },
-          { label: 'Out of Stock', value: outItems.length, icon: '🚫', color: '#FF2D55', alert: outItems.length > 0 },
+          { label: 'Total Items', value: items.length, icon: '📦', color: '#0071e3', bg: 'from-blue-50 to-cyan-50' },
+          { label: 'Total Value', value: `$${totalValue.toLocaleString()}`, icon: '💰', color: '#10b981', bg: 'from-emerald-50 to-teal-50' },
+          { label: 'Low Stock', value: lowItems.length, icon: '⚠️', color: '#f59e0b', alert: lowItems.length > 0, bg: 'from-amber-50 to-orange-50' },
+          { label: 'Out of Stock', value: outItems.length, icon: '🚫', color: '#ec4899', alert: outItems.length > 0, bg: 'from-pink-50 to-rose-50' },
         ].map(s => (
           <motion.div
             key={s.label}
@@ -135,16 +133,14 @@ export default function Warehouses() {
             {s.alert && <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-400 animate-pulse" />}
             <div className="flex items-start justify-between mb-2">
               <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold">{s.label}</p>
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg" style={{ background: `${s.color}15` }}>{s.icon}</div>
+              <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>{s.icon}</div>
             </div>
             <p className="text-2xl font-extrabold text-gray-900">{s.value}</p>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Stock by category donut + items */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Donut */}
         <motion.div variants={fadeUp} className="lg:col-span-1 premium-card p-6">
           <h3 className="text-sm font-bold text-gray-800 mb-1">Stock by Category</h3>
           <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-4">At {warehouse.name}</p>
@@ -176,17 +172,16 @@ export default function Warehouses() {
           )}
         </motion.div>
 
-        {/* Items table */}
         <motion.div variants={fadeUp} className="lg:col-span-2 premium-card overflow-hidden">
           <div className="p-5 pb-3 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800">Items in Warehouse</h3>
-            <Link to="/items" className="text-xs text-blue-600 hover:underline font-semibold">Manage all</Link>
+            <Link to="/items" className="text-xs text-purple-600 hover:text-purple-700 hover:underline font-semibold">Manage all</Link>
           </div>
           {items.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-3 opacity-50">📦</div>
               <p className="text-gray-400 text-sm font-medium">No items in this warehouse</p>
-              <Link to="/items" className="text-blue-600 hover:underline text-xs font-semibold mt-2 inline-block">Add items</Link>
+              <Link to="/items" className="text-purple-600 hover:text-purple-700 hover:underline text-xs font-semibold mt-2 inline-block">Add items</Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -237,25 +232,29 @@ export default function Warehouses() {
         </motion.div>
       </div>
 
-      {/* Edit modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setEditing(false)}>
-          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md mx-4 p-6 border border-gray-100" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">✏️ Edit Warehouse</h2>
-            <form onSubmit={e => { e.preventDefault(); handleEdit() }} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
-                <input required value={editName} onChange={e => setEditName(e.target.value)} className="input-apple w-full" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
-                <input value={editLoc} onChange={e => setEditLoc(e.target.value)} className="input-apple w-full" placeholder="e.g. Lucknow" />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setEditing(false)} className="btn-light">Cancel</button>
-                <button type="submit" className="btn-premium">Save Changes</button>
-              </div>
-            </form>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setEditing(false)}>
+          <div className="relative rounded-2xl p-[1px] bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 shadow-2xl shadow-teal-500/20 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl p-6">
+              <h2 className="text-lg font-bold">
+                <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">✏️ Edit Warehouse</span>
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5 mb-4">Update warehouse details</p>
+              <form onSubmit={e => { e.preventDefault(); handleEdit() }} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
+                  <input required value={editName} onChange={e => setEditName(e.target.value)} className="input-apple w-full" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
+                  <input value={editLoc} onChange={e => setEditLoc(e.target.value)} className="input-apple w-full" placeholder="e.g. Downtown" />
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setEditing(false)} className="btn-light">Cancel</button>
+                  <button type="submit" className="btn-premium">Save Changes</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

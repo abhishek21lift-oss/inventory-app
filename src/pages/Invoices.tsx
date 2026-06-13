@@ -55,7 +55,12 @@ export default function Invoices() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Invoices</h1><p className="text-sm text-gray-500 mt-0.5">{invoices.length} total</p></div>
+        <div>
+          <h1 className="text-2xl font-bold">
+            <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">Invoices</span>
+          </h1>
+          <p className="text-sm text-gray-400 mt-0.5">{invoices.length} total</p>
+        </div>
         <button onClick={() => { setFormCust(''); setFormEmail(''); setFormPhone(''); setFormWh(''); setFormNotes(''); setFormTax(0); setFormItems([]); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">+ New Invoice</button>
       </div>
 
@@ -76,8 +81,8 @@ export default function Invoices() {
                 <td className="text-right opacity-0 group-hover:opacity-100 transition">
                   {inv.status === 'draft' && (
                     <>
-                      <button onClick={() => handleConfirm(inv.id)} className="text-xs bg-green-50 text-green-700 px-2.5 py-1.5 rounded-lg hover:bg-green-100 border border-green-100 mr-1">Pay</button>
-                      <button onClick={() => handleCancel(inv.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Cancel</button>
+                      <button onClick={() => handleConfirm(inv.id)} className="text-xs bg-gradient-to-r from-emerald-50 to-green-50 text-green-700 px-2.5 py-1.5 rounded-lg hover:from-emerald-100 hover:to-green-100 border border-green-200 mr-1 font-semibold">Pay</button>
+                      <button onClick={() => handleCancel(inv.id)} className="text-xs bg-gradient-to-r from-red-50 to-rose-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:from-red-100 hover:to-rose-100 border border-red-200 font-semibold">Cancel</button>
                     </>
                   )}
                   {inv.status === 'paid' && <span className="text-xs text-green-600 font-medium">✓ Paid</span>}
@@ -89,44 +94,49 @@ export default function Invoices() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm overflow-y-auto py-8" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-2xl mx-4 p-6 border border-gray-100" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">New Invoice</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Customer *</label><input required value={formCust} onChange={e => setFormCust(e.target.value)} className="input-apple w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label><input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="input-apple w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label><input value={formPhone} onChange={e => setFormPhone(e.target.value)} className="input-apple w-full" /></div>
-                <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label><select required value={formWh} onChange={e => setFormWh(e.target.value)} className="input-apple w-full"><option value="">Select</option>{warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items</label>
-                  <button type="button" onClick={handleAdd} className="text-xs text-blue-600 hover:underline font-semibold">+ Add Item</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8" onClick={() => setShowForm(false)}>
+          <div className="relative rounded-2xl p-[1px] bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 shadow-2xl shadow-emerald-500/20 w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl p-6">
+              <h2 className="text-lg font-bold">
+                <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">New Invoice</span>
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5 mb-4">Create a new invoice for your customer</p>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Customer *</label><input required value={formCust} onChange={e => setFormCust(e.target.value)} className="input-apple w-full" placeholder="Customer name" /></div>
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label><input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="input-apple w-full" placeholder="customer@example.com" /></div>
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label><input value={formPhone} onChange={e => setFormPhone(e.target.value)} className="input-apple w-full" placeholder="+1 234 567 890" /></div>
+                  <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Warehouse *</label><select required value={formWh} onChange={e => setFormWh(e.target.value)} className="input-apple w-full"><option value="">Select warehouse</option>{warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div>
                 </div>
-                <div className="space-y-2">
-                  {formItems.map((line, i) => (
-                    <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-xl p-2">
-                      <select value={line.itemId} onChange={e => handleLine(i, 'itemId', e.target.value)} className="input-apple flex-1 text-xs py-2">
-                        <option value="">Select</option>
-                        {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price})</option>)}
-                      </select>
-                      <input type="number" min="1" value={line.quantity} onChange={e => handleLine(i, 'quantity', parseInt(e.target.value) || 1)} className="input-apple w-20 text-xs text-center py-2" />
-                      <input type="number" step="0.01" min="0" value={line.unitPrice} onChange={e => handleLine(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="input-apple w-24 text-xs py-2" />
-                      <button type="button" onClick={() => handleRemove(i)} className="text-red-500 hover:text-red-700 text-lg px-1">&times;</button>
-                    </div>
-                  ))}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items</label>
+                    <button type="button" onClick={handleAdd} className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-semibold">+ Add Item</button>
+                  </div>
+                  <div className="space-y-2">
+                    {formItems.map((line, i) => (
+                      <div key={i} className="flex gap-2 items-center bg-gradient-to-r from-gray-50 to-emerald-50/30 rounded-xl p-2 border border-gray-100">
+                        <select value={line.itemId} onChange={e => handleLine(i, 'itemId', e.target.value)} className="input-apple flex-1 text-xs py-2">
+                          <option value="">Select</option>
+                          {items.map(it => <option key={it.id} value={it.id}>{it.name} (${it.price})</option>)}
+                        </select>
+                        <input type="number" min="1" value={line.quantity} onChange={e => handleLine(i, 'quantity', parseInt(e.target.value) || 1)} className="input-apple w-20 text-xs text-center py-2" />
+                        <input type="number" step="0.01" min="0" value={line.unitPrice} onChange={e => handleLine(i, 'unitPrice', parseFloat(e.target.value) || 0)} className="input-apple w-24 text-xs py-2" />
+                        <button type="button" onClick={() => handleRemove(i)} className="text-red-500 hover:text-red-700 text-lg px-1">&times;</button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Tax ($)</label><input type="number" step="0.01" min="0" value={formTax} onChange={e => setFormTax(parseFloat(e.target.value) || 0)} className="input-apple w-full" /></div>
-                <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label><input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-apple w-full" /></div>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-light">Cancel</button>
-                <button type="submit" className="btn-premium">Create Invoice</button>
-              </div>
-            </form>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Tax ($)</label><input type="number" step="0.01" min="0" value={formTax} onChange={e => setFormTax(parseFloat(e.target.value) || 0)} className="input-apple w-full" /></div>
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Notes</label><input value={formNotes} onChange={e => setFormNotes(e.target.value)} className="input-apple w-full" placeholder="Optional notes" /></div>
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setShowForm(false)} className="btn-light">Cancel</button>
+                  <button type="submit" className="btn-premium">Create Invoice</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -89,8 +89,10 @@ export default function Items() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Items</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{items.length} total</p>
+          <h1 className="text-2xl font-bold">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Items</span>
+          </h1>
+          <p className="text-sm text-gray-400 mt-0.5">{items.length} total</p>
         </div>
         <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
           + Add Item

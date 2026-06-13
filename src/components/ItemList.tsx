@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import type { Item, SortField, SortDir } from '../types'
 import StockBadge from './StockBadge'
 
@@ -75,12 +76,15 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
             </tr>
           </thead>
           <tbody>
-            {items.map(item => {
+            {items.map((item, i) => {
               const isLow = item.quantity > 0 && item.quantity <= item.minStock
               const isOut = item.quantity === 0
               return (
-                <tr
+                <motion.tr
                   key={item.id}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.01 }}
                   className={`group cursor-pointer transition-colors ${isOut ? 'row-out' : isLow ? 'row-low' : ''}`}
                   onClick={() => onSelectItem(item)}
                 >
@@ -122,11 +126,11 @@ export default function ItemList({ items, sortField, sortDir, onSort, onEdit, on
                   <td className="text-right" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
                       <button onClick={() => onDuplicate(item.id)} className="btn-ghost text-xs" title="Duplicate">📋</button>
-                      <button onClick={() => onEdit(item)} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-gray-200">Edit</button>
-                      <button onClick={() => onDelete(item.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 border border-red-100">Delete</button>
+                      <button onClick={() => onEdit(item)} className="text-xs bg-gradient-to-r from-gray-100 to-gray-50 text-gray-600 px-2.5 py-1.5 rounded-lg hover:from-gray-200 hover:to-gray-100 border border-gray-100 font-semibold">Edit</button>
+                      <button onClick={() => onDelete(item.id)} className="text-xs bg-gradient-to-r from-red-50 to-rose-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:from-red-100 hover:to-rose-100 border border-red-200 font-semibold">Delete</button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               )
             })}
           </tbody>

@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts'
 
-const COLORS = ['#0071e3', '#5856D6', '#34C759', '#FF9500', '#FF2D55', '#5AC8FA', '#FFCC00']
+const COLORS = ['#0071e3', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#eab308']
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } }
 const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16,1,0.3,1] as const } } }
@@ -36,13 +36,13 @@ function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; p
 function LoadingSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-24 bg-gray-100 rounded-3xl" />
+      <div className="h-24 bg-white/10 rounded-3xl" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-36 bg-gray-100 rounded-2xl" />)}
+        {[...Array(4)].map((_, i) => <div key={i} className="h-36 bg-white/10 rounded-2xl" />)}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 h-72 bg-gray-100 rounded-2xl" />
-        <div className="lg:col-span-3 h-72 bg-gray-100 rounded-2xl" />
+        <div className="lg:col-span-2 h-72 bg-white/10 rounded-2xl" />
+        <div className="lg:col-span-3 h-72 bg-white/10 rounded-2xl" />
       </div>
     </div>
   )
@@ -51,7 +51,7 @@ function LoadingSkeleton() {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload) return null
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl border border-gray-100">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl border border-gray-100">
       <p className="text-xs font-bold text-gray-500 mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2 text-sm">
@@ -76,7 +76,7 @@ export default function Dashboard() {
     <div className="flex items-center justify-center h-96">
       <div className="text-center">
         <div className="text-6xl mb-4 opacity-30 animate-pulse">📊</div>
-        <p className="text-gray-500 text-lg font-medium">Failed to load dashboard</p>
+        <p className="text-gray-400 text-lg font-medium">Failed to load dashboard</p>
         <button onClick={() => window.location.reload()} className="btn-premium mt-4">Retry</button>
       </div>
     </div>
@@ -84,28 +84,20 @@ export default function Dashboard() {
 
   const utilization = data.activeWarehouses > 0 ? Math.round((data.activeWarehouses / (data.activeWarehouses + 1)) * 100) : 0
 
-  const revenueData = [
-    { month: 'Jan', revenue: 4200, lastYear: 3800 },
-    { month: 'Feb', revenue: 5800, lastYear: 4100 },
-    { month: 'Mar', revenue: 4900, lastYear: 5200 },
-    { month: 'Apr', revenue: 7200, lastYear: 4800 },
-    { month: 'May', revenue: 6100, lastYear: 5600 },
-    { month: 'Jun', revenue: data.paidInvoices * 850 + 3500 || 6500, lastYear: 5100 },
-  ]
+  const revenueData: { month: string; revenue: number; lastYear: number }[] = []
 
   const totalStock = data.stockByCategory.reduce((s, c) => s + c.total, 0)
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-
-      {/* ===== COMPACT HERO ===== */}
       <motion.div
         ref={heroRef}
         variants={fadeUp}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] text-white p-6 sm:p-8"
+        className="relative overflow-hidden rounded-3xl hero-gradient text-white p-6 sm:p-8 shadow-2xl shadow-purple-500/10"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(0,113,227,0.3),transparent_60%)]" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#5856D6]/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.3),transparent_60%)]" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/15 rounded-full blur-[60px]" />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -119,11 +111,11 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             {[
-              { label: 'Items', value: data.totalItems, color: 'from-blue-400 to-blue-600' },
-              { label: 'Value', value: `$${data.totalValue.toLocaleString()}`, color: 'from-emerald-400 to-emerald-600' },
-              { label: 'Warehouses', value: data.activeWarehouses, color: 'from-violet-400 to-violet-600' },
+              { label: 'Items', value: data.totalItems, gradient: 'from-blue-400 to-cyan-500', icon: '📦' },
+              { label: 'Value', value: `$${data.totalValue.toLocaleString()}`, gradient: 'from-emerald-400 to-teal-500', icon: '💰' },
+              { label: 'Warehouses', value: data.activeWarehouses, gradient: 'from-purple-400 to-pink-500', icon: '🏭' },
             ].map(s => (
-              <div key={s.label} className={`bg-gradient-to-br ${s.color} rounded-xl px-4 py-2.5 text-center min-w-[80px] shadow-lg`}>
+              <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-xl px-4 py-2.5 text-center min-w-[80px] shadow-lg shadow-${s.gradient.split(' ')[0].replace('from-', '')}/30`}>
                 <p className="text-[18px] font-extrabold leading-tight">{s.value}</p>
                 <p className="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-0.5">{s.label}</p>
               </div>
@@ -132,13 +124,12 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ===== METRICS ROW WITH MINI GAUGES ===== */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Items', value: data.totalItems, gauge: Math.round((data.totalItems / (data.totalItems + 10)) * 100), color: '#0071e3', icon: '📦' },
-          { label: 'Portfolio', value: `$${data.totalValue.toLocaleString()}`, gauge: 78, color: '#34C759', icon: '💰' },
-          { label: 'Low Stock', value: data.lowStock, gauge: 100 - Math.min(data.lowStock * 20, 100), color: '#FF9500', icon: '⚠️', alert: data.lowStock > 0 },
-          { label: 'Out of Stock', value: data.outStock, gauge: 100 - Math.min(data.outStock * 25, 100), color: '#FF2D55', icon: '🚫', alert: data.outStock > 0 },
+          { label: 'Total Items', value: data.totalItems, gauge: Math.round((data.totalItems / (data.totalItems + 10)) * 100), color: '#0071e3', icon: '📦', bg: 'from-blue-50 to-cyan-50' },
+          { label: 'Portfolio', value: `$${data.totalValue.toLocaleString()}`, gauge: 78, color: '#10b981', icon: '💰', bg: 'from-emerald-50 to-teal-50' },
+          { label: 'Low Stock', value: data.lowStock, gauge: 100 - Math.min(data.lowStock * 20, 100), color: '#f59e0b', icon: '⚠️', alert: data.lowStock > 0, bg: 'from-amber-50 to-orange-50' },
+          { label: 'Out of Stock', value: data.outStock, gauge: 100 - Math.min(data.outStock * 25, 100), color: '#ec4899', icon: '🚫', alert: data.outStock > 0, bg: 'from-pink-50 to-rose-50' },
         ].map(s => (
           <motion.div
             key={s.label}
@@ -148,7 +139,9 @@ export default function Dashboard() {
             {s.alert && <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-400 animate-pulse" />}
             <div className="flex items-center justify-between mb-1">
               <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold">{s.label}</p>
-              <span className="text-lg">{s.icon}</span>
+              <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>
+                {s.icon}
+              </div>
             </div>
             <p className="text-2xl font-extrabold text-gray-900">
               {typeof s.value === 'number' ? <AnimatedCounter value={s.value} /> : s.value}
@@ -159,16 +152,14 @@ export default function Dashboard() {
                 animate={{ width: `${s.gauge}%` }}
                 transition={{ duration: 1, delay: 0.3, ease: [0.16,1,0.3,1] }}
                 className="h-full rounded-full"
-                style={{ background: s.color }}
+                style={{ background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
               />
             </div>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* ===== DONUT + SECONDARY METRICS ===== */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Big donut with center text */}
         <div className="lg:col-span-2 premium-card p-6 flex flex-col items-center justify-center">
           <h3 className="text-sm font-bold text-gray-800 self-start mb-2">Stock Distribution</h3>
           <p className="text-[10px] text-gray-400 self-start mb-4 font-medium uppercase tracking-wider">By category</p>
@@ -201,13 +192,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right side: mini metric cards */}
         <div className="lg:col-span-3 grid grid-cols-2 gap-4">
           {[
-            { label: 'Suppliers Active', value: data.activeSuppliers, sub: 'vendors', color: '#5AC8FA', icon: '🚚' },
-            { label: 'Pending POs', value: data.pendingPOs, sub: 'awaiting', color: '#FF9500', icon: '📋', alert: data.pendingPOs > 0 },
-            { label: 'Invoices Paid', value: data.paidInvoices, sub: 'completed', color: '#34C759', icon: '🧾' },
-            { label: 'Utilization', value: `${utilization}%`, sub: 'warehouse capacity', color: '#5856D6', icon: '🏭', gauge: utilization },
+            { label: 'Suppliers Active', value: data.activeSuppliers, sub: 'vendors', color: '#06b6d4', icon: '🚚', bg: 'from-cyan-50 to-blue-50' },
+            { label: 'Pending POs', value: data.pendingPOs, sub: 'awaiting', color: '#f59e0b', icon: '📋', alert: data.pendingPOs > 0, bg: 'from-amber-50 to-orange-50' },
+            { label: 'Invoices Paid', value: data.paidInvoices, sub: 'completed', color: '#10b981', icon: '🧾', bg: 'from-emerald-50 to-teal-50' },
+            { label: 'Utilization', value: `${utilization}%`, sub: 'warehouse capacity', color: '#8b5cf6', icon: '🏭', gauge: utilization, bg: 'from-purple-50 to-violet-50' },
           ].map((s, i) => (
             <motion.div
               key={s.label}
@@ -220,7 +210,7 @@ export default function Dashboard() {
                   <p className="text-2xl font-extrabold text-gray-900 mt-1">{s.value}</p>
                   <p className="text-[10px] text-gray-400 font-medium mt-0.5">{s.sub}</p>
                 </div>
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg" style={{ background: `${s.color}15` }}>
+                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>
                   {s.icon}
                 </div>
               </div>
@@ -231,7 +221,7 @@ export default function Dashboard() {
                     animate={{ width: `${s.gauge}%` }}
                     transition={{ duration: 1, delay: 0.5 + i * 0.1, ease: [0.16,1,0.3,1] }}
                     className="h-full rounded-full"
-                    style={{ background: s.color }}
+                    style={{ background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
                   />
                 </div>
               )}
@@ -240,48 +230,47 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ===== REVENUE CHART ===== */}
-      <motion.div variants={fadeUp} className="premium-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-sm font-bold text-gray-800">Revenue Trends</h3>
-            <p className="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-wider">Current year vs last year</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
-              <span className="text-[10px] text-gray-500 font-semibold">This Year</span>
+      {revenueData.length > 0 && (
+        <motion.div variants={fadeUp} className="premium-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-sm font-bold text-gray-800">Revenue Trends</h3>
+              <p className="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-wider">Current year vs last year</p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF2D55]/50" />
-              <span className="text-[10px] text-gray-500 font-semibold">Last Year</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
+                <span className="text-[10px] text-gray-500 font-semibold">This Year</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ec4899]/50" />
+                <span className="text-[10px] text-gray-500 font-semibold">Last Year</span>
+              </div>
             </div>
           </div>
-        </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={revenueData}>
-            <defs>
-              <linearGradient id="revG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0071e3" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="#0071e3" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
-            <XAxis dataKey="month" axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
-            <YAxis axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
-            <Tooltip content={<CustomTooltip />} />
-            <Area type="monotone" dataKey="revenue" stroke="#0071e3" strokeWidth={3} fill="url(#revG)" dot={{ r: 0 }} activeDot={{ r: 6, fill: '#0071e3', stroke: '#fff', strokeWidth: 2 }} />
-            <Area type="monotone" dataKey="lastYear" stroke="#FF2D55" strokeWidth={2} strokeDasharray="5 5" fill="none" dot={{ r: 0 }} activeDot={{ r: 5, fill: '#FF2D55', stroke: '#fff', strokeWidth: 2 }} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </motion.div>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={revenueData}>
+              <defs>
+                <linearGradient id="revG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0071e3" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#0071e3" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
+              <YAxis axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="revenue" stroke="#0071e3" strokeWidth={3} fill="url(#revG)" dot={{ r: 0 }} activeDot={{ r: 6, fill: '#0071e3', stroke: '#fff', strokeWidth: 2 }} />
+              <Area type="monotone" dataKey="lastYear" stroke="#ec4899" strokeWidth={2} strokeDasharray="5 5" fill="none" dot={{ r: 0 }} activeDot={{ r: 5, fill: '#ec4899', stroke: '#fff', strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+      )}
 
-      {/* ===== BOTTOM ROW ===== */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Alerts */}
         <div className="premium-card p-6">
           <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-sm">⚠️</div>
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-sm">⚠️</div>
             <div>
               <h3 className="text-sm font-bold text-gray-800">Low Stock Alerts</h3>
               <p className="text-[10px] text-gray-400 font-medium">{data.lowStockItems.length} items need attention</p>
@@ -300,10 +289,10 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50/50 rounded-2xl px-5 py-3.5 border border-amber-100/60"
+                  className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50/50 rounded-2xl px-5 py-3.5 border border-amber-200/60"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-200/50 flex items-center justify-center text-sm">📦</div>
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center text-sm">📦</div>
                     <div>
                       <p className="text-sm font-bold text-gray-800">{item.name}</p>
                       <p className="text-[10px] text-gray-400 font-mono">{item.sku}</p>
@@ -319,17 +308,16 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Activity */}
         <div className="premium-card p-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-sm">📜</div>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-sm">📜</div>
               <div>
                 <h3 className="text-sm font-bold text-gray-800">Recent Activity</h3>
                 <p className="text-[10px] text-gray-400 font-medium">Latest events across your inventory</p>
               </div>
             </div>
-            <Link to="/activity" className="text-xs text-blue-600 hover:underline font-semibold">View all</Link>
+            <Link to="/activity" className="text-xs text-purple-600 hover:text-purple-700 hover:underline font-semibold">View all</Link>
           </div>
           {data.recentActivity.length === 0 ? (
             <div className="flex flex-col items-center py-8">
@@ -344,7 +332,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.03 }}
-                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-purple-50/50 transition-colors"
                 >
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 ${
                     a.action.includes('Received') ? 'bg-emerald-100' :
