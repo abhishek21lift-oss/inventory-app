@@ -105,7 +105,7 @@ export default function Dashboard() {
               <span className="text-[10px] text-blue-200 font-semibold uppercase tracking-widest">Live Dashboard</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-              {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, Admin
+              RISHI MNN NARAYAN
             </h1>
             <p className="text-blue-200/70 text-sm mt-1">Real-time overview of your entire inventory.</p>
           </div>
