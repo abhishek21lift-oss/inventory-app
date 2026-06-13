@@ -43,10 +43,10 @@ export default function Login() {
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
                 src="/logo.png"
                 alt="Logo"
-                className="w-16 h-16 rounded-2xl mx-auto shadow-xl shadow-purple-500/25 mb-4 object-cover"
+                className="w-20 h-20 rounded-2xl mx-auto shadow-2xl shadow-purple-500/30 mb-4 object-cover brightness-110 ring-2 ring-white/20"
               />
               <h1 className="text-xl font-extrabold">
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Inventory System</span>
+                <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">619 NUTRITION</span>
               </h1>
               <p className="text-sm text-gray-500 mt-1.5 font-medium">
                 {isRegister ? 'Create your account' : 'Sign in to your account'}

@@ -31,13 +31,14 @@ export default function Layout() {
                 whileHover={{ scale: 1.1, rotate: -5 }}
                 src="/logo.png"
                 alt="Logo"
-                className="w-10 h-10 rounded-xl shadow-lg shadow-purple-500/30 ring-1 ring-white/30 object-cover"
+                className="w-11 h-11 rounded-xl shadow-xl shadow-purple-500/40 ring-2 ring-white/40 object-cover brightness-110"
               />
               <div className="hidden sm:block">
-                <h1 className="text-sm font-extrabold tracking-tight leading-tight">
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Inventory</span>
+                <h1 className="text-base font-black tracking-tight leading-tight">
+                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">619</span>
+                  <span className="text-white font-extrabold ml-1.5">NUTRITION</span>
                 </h1>
-                <p className="text-[8px] text-gray-400 tracking-[0.12em] uppercase font-semibold -mt-0.5">Management Suite</p>
+                <p className="text-[8px] text-blue-300/90 tracking-[0.12em] uppercase font-semibold -mt-0.5">Gym Inventory</p>
               </div>
             </NavLink>
 
