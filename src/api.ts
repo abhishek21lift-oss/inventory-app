@@ -39,14 +39,19 @@ export function fetchUsers() { return request<{ id: string; email: string; name:
 export function fetchDashboard() { return request<DashboardData>('/api/dashboard') }
 
 // Items
-export function fetchItems(params?: { search?: string; category?: string; condition?: string; warehouseId?: string }) {
+export async function fetchItems(params?: { search?: string; category?: string; condition?: string; warehouseId?: string; page?: number; limit?: number }) {
   const q = new URLSearchParams()
   if (params?.search) q.set('search', params.search)
   if (params?.category) q.set('category', params.category)
   if (params?.condition) q.set('condition', params.condition)
   if (params?.warehouseId) q.set('warehouseId', params.warehouseId)
+  if (params?.page) q.set('page', params.page.toString())
+  if (params?.limit) q.set('limit', params.limit.toString())
   const qs = q.toString()
-  return request<Item[]>(`/api/items${qs ? '?' + qs : ''}`)
+  const res = await request<{ data: Item[]; total: number; page: number; limit: number } | Item[]>(`/api/items${qs ? '?' + qs : ''}`)
+  // Handle both paginated and legacy array responses
+  if (Array.isArray(res)) return res
+  return res.data
 }
 
 export function fetchItem(id: string) { return request<Item>(`/api/items/${id}`) }
@@ -62,6 +67,7 @@ export function transferStock(id: string, fromWarehouseId: string, toWarehouseId
 // Categories
 export function fetchCategories() { return request<Category[]>('/api/categories') }
 export function createCategory(id: string, name: string) { return request<Category>('/api/categories', { method: 'POST', body: JSON.stringify({ id, name }) }) }
+export function updateCategory(id: string, name: string) { return request<{ id: string; name: string }>(`/api/categories/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }) }
 export function deleteCategory(id: string) { return request<{ message: string }>(`/api/categories/${id}`, { method: 'DELETE' }) }
 
 // Warehouses

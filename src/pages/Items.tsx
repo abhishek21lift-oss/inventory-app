@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { fetchItems, fetchCategories, createItem, updateItem, deleteItem, adjustStock, duplicateItem } from '../api'
+import { fetchItems, fetchCategories, createItem, updateItem, deleteItem, adjustStock, duplicateItem, createCategory, updateCategory, deleteCategory } from '../api'
 import type { Item, Category, SortField, SortDir } from '../types'
 import SearchBar from '../components/SearchBar'
 import ItemList from '../components/ItemList'
 import ItemForm from '../components/ItemForm'
 import ItemDetail from '../components/ItemDetail'
+import CategoryManager from '../components/CategoryManager'
 
 export default function Items() {
   const [items, setItems] = useState<Item[]>([])
@@ -18,6 +19,7 @@ export default function Items() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Item | undefined>()
   const [detailItem, setDetailItem] = useState<Item | undefined>()
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -94,9 +96,14 @@ export default function Items() {
           </h1>
           <p className="text-sm text-blue-200/70 mt-0.5">{items.length} total</p>
         </div>
-        <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
-          + Add Item
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowCategoryManager(true)} className="btn-light flex items-center gap-1.5 text-sm">
+            Manage Categories
+          </button>
+          <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
+            + Add Item
+          </button>
+        </div>
       </div>
 
       <SearchBar
@@ -130,6 +137,35 @@ export default function Items() {
       )}
 
       {toast && <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>{toast.message}</div>}
+
+      {showCategoryManager && (
+        <CategoryManager
+          categories={categories}
+          onAdd={async (name) => {
+            try {
+              const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+              await createCategory(id, name)
+              showToast('Category added')
+              load()
+            } catch { showToast('Failed to add category', 'error') }
+          }}
+          onUpdate={async (id, name) => {
+            try {
+              await updateCategory(id, name)
+              showToast('Category renamed')
+              load()
+            } catch { showToast('Failed to rename category', 'error') }
+          }}
+          onDelete={async (id) => {
+            try {
+              await deleteCategory(id)
+              showToast('Category deleted')
+              load()
+            } catch { showToast('Failed to delete category', 'error') }
+          }}
+          onClose={() => setShowCategoryManager(false)}
+        />
+      )}
     </div>
   )
 }

@@ -15,6 +15,7 @@ const catColorMap: Record<string, string> = {
 }
 
 export default function Warehouses() {
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [warehouse, setWarehouse] = useState<Warehouse | null>(null)
   const [items, setItems] = useState<Item[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -25,19 +26,33 @@ export default function Warehouses() {
   const [toast, setToast] = useState('')
   const show = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000) }
 
-  const load = async () => {
+  const load = async (whId?: string) => {
     try {
-      const [whs, its, cats] = await Promise.all([
-        fetchWarehouses(), fetchItems({ warehouseId: 'wh1' }), fetchCategories()
-      ])
-      const wh = whs.find(w => w.id === 'wh1') || whs[0]
-      setWarehouse(wh || null)
-      setItems(its)
+      const [whs, cats] = await Promise.all([fetchWarehouses(), fetchCategories()])
+      setWarehouses(whs)
+      const targetId = whId || (whs.length > 0 ? whs[0].id : '')
+      const wh = whs.find(w => w.id === targetId) || whs[0] || null
+      setWarehouse(wh)
       setCategories(cats)
+      if (wh) {
+        const its = await fetchItems({ warehouseId: wh.id })
+        setItems(its)
+      } else {
+        setItems([])
+      }
     } catch { show('Failed to load') }
     finally { setLoading(false) }
   }
   useEffect(() => { load() }, [])
+
+  const switchWarehouse = (id: string) => {
+    const wh = warehouses.find(w => w.id === id)
+    if (wh) {
+      setWarehouse(wh)
+      setLoading(true)
+      fetchItems({ warehouseId: wh.id }).then(setItems).finally(() => setLoading(false))
+    }
+  }
 
   const handleEdit = async () => {
     if (!warehouse) return
@@ -103,12 +118,23 @@ export default function Warehouses() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => { setEditing(true); setEditName(warehouse.name); setEditLoc(warehouse.location || '') }}
-              className="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2 text-sm font-semibold transition-all"
-            >
-              ✏️ Edit
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={warehouse.id}
+                onChange={e => switchWarehouse(e.target.value)}
+                className="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 text-sm font-semibold transition-all text-white outline-none cursor-pointer"
+              >
+                {warehouses.map(w => (
+                  <option key={w.id} value={w.id} className="text-gray-900 bg-white">{w.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => { setEditing(true); setEditName(warehouse.name); setEditLoc(warehouse.location || '') }}
+                className="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+              >
+                ✏️ Edit
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2.5 mt-5">
             <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-4 py-1.5 text-[11px] font-semibold backdrop-blur-sm border border-white/10">📦 {items.length} items stored</span>

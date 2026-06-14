@@ -2,10 +2,10 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import { fetchDashboard } from '../api'
+import { useAuth } from '../context/AuthContext'
 import type { DashboardData } from '../types'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell, ResponsiveContainer
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer
 } from 'recharts'
 
 const COLORS = ['#0071e3', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#eab308']
@@ -48,23 +48,8 @@ function LoadingSkeleton() {
   )
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload) return null
-  return (
-    <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl border border-gray-100">
-      <p className="text-xs font-bold text-gray-500 mb-1.5">{label}</p>
-      {payload.map((p: any, i: number) => (
-        <div key={i} className="flex items-center gap-2 text-sm">
-          <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-600 font-medium">{p.name}:</span>
-          <span className="font-bold text-gray-900">${p.value.toLocaleString()}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export default function Dashboard() {
+  const { user } = useAuth()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const heroRef = useRef(null)
@@ -83,8 +68,6 @@ export default function Dashboard() {
   )
 
   const utilization = data.activeWarehouses > 0 ? Math.round((data.activeWarehouses / (data.activeWarehouses + 1)) * 100) : 0
-
-  const revenueData: { month: string; revenue: number; lastYear: number }[] = []
 
   const totalStock = data.stockByCategory.reduce((s, c) => s + c.total, 0)
 
@@ -105,7 +88,7 @@ export default function Dashboard() {
               <span className="text-[10px] text-blue-200 font-semibold uppercase tracking-widest">Live Dashboard</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-              RISHI mnn NARAYAN
+              {user?.name || 'Dashboard'}
             </h1>
             <p className="text-blue-200/70 text-sm mt-1">Real-time overview of your entire inventory.</p>
           </div>
@@ -229,43 +212,6 @@ export default function Dashboard() {
           ))}
         </div>
       </motion.div>
-
-      {revenueData.length > 0 && (
-        <motion.div variants={fadeUp} className="premium-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-sm font-bold text-gray-800">Revenue Trends</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-wider">Current year vs last year</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
-                <span className="text-[10px] text-gray-500 font-semibold">This Year</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ec4899]/50" />
-                <span className="text-[10px] text-gray-500 font-semibold">Last Year</span>
-              </div>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={revenueData}>
-              <defs>
-                <linearGradient id="revG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0071e3" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#0071e3" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
-              <YAxis axisLine={false} tickLine={false} stroke="rgba(0,0,0,0.1)" tick={{ fontSize: 12, fill: '#86868b' }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="revenue" stroke="#0071e3" strokeWidth={3} fill="url(#revG)" dot={{ r: 0 }} activeDot={{ r: 6, fill: '#0071e3', stroke: '#fff', strokeWidth: 2 }} />
-              <Area type="monotone" dataKey="lastYear" stroke="#ec4899" strokeWidth={2} strokeDasharray="5 5" fill="none" dot={{ r: 0 }} activeDot={{ r: 5, fill: '#ec4899', stroke: '#fff', strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
-      )}
 
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="premium-card p-6">
