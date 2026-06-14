@@ -34,11 +34,11 @@ export default function Layout() {
                 className="w-11 h-11 rounded-xl shadow-xl shadow-purple-500/40 ring-2 ring-white/40 object-cover brightness-110"
               />
               <div className="hidden sm:block">
-                <h1 className="text-base font-black tracking-tight leading-tight">
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">619</span>
-                  <span className="text-white font-extrabold ml-1.5">NUTRITION</span>
+                <h1 className="text-lg font-black tracking-tight leading-none">
+                  <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(139,92,246,0.5)]">619</span>
+                  <span className="text-white font-black ml-1.5 drop-shadow-[0_2px_6px_rgba(255,255,255,0.3)]">NUTRITION</span>
                 </h1>
-                <p className="text-[8px] text-blue-300/90 tracking-[0.12em] uppercase font-semibold -mt-0.5">Gym Inventory</p>
+                <p className="text-[9px] text-blue-200/80 tracking-[0.15em] uppercase font-semibold mt-0">Gym Inventory</p>
               </div>
             </NavLink>
 

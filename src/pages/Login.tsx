@@ -45,8 +45,9 @@ export default function Login() {
                 alt="Logo"
                 className="w-20 h-20 rounded-2xl mx-auto shadow-2xl shadow-purple-500/30 mb-4 object-cover brightness-110 ring-2 ring-white/20"
               />
-              <h1 className="text-xl font-extrabold">
-                <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">619 NUTRITION</span>
+              <h1 className="text-2xl font-black tracking-tight">
+                <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(139,92,246,0.5)]">619</span>
+                <span className="text-white drop-shadow-[0_2px_6px_rgba(255,255,255,0.3)] ml-2">NUTRITION</span>
               </h1>
               <p className="text-sm text-gray-500 mt-1.5 font-medium">
                 {isRegister ? 'Create your account' : 'Sign in to your account'}
