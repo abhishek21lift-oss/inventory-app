@@ -4,46 +4,66 @@ import { motion, useInView } from 'framer-motion'
 import { fetchDashboard } from '../api'
 import { useAuth } from '../context/AuthContext'
 import type { DashboardData } from '../types'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer
-} from 'recharts'
+  Package, DollarSign, AlertTriangle, XCircle, ShoppingCart,
+  Receipt, Warehouse, Truck, TrendingUp, Clock
+} from 'lucide-react'
+import { fmtCurrency, fmtDateTime } from '../lib/utils'
 
-const COLORS = ['#0071e3', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#eab308']
+const PIE_COLORS = ['#c9973a', '#7c1b1b', '#059669', '#2563eb', '#7c3aed', '#d97706', '#0e7490']
 
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } }
-const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16,1,0.3,1] as const } } }
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
+const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } } }
 
-function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
+function Counter({ value }: { value: number }) {
   const [count, setCount] = useState(0)
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true })
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true })
   useEffect(() => {
-    if (!isInView) return
-    let start = 0
-    const end = value
-    const duration = 800
-    const step = Math.max(1, Math.floor(end / 30))
-    const interval = setInterval(() => {
-      start += step
-      if (start >= end) { setCount(end); clearInterval(interval) }
-      else setCount(start)
-    }, duration / (end / step))
-    return () => clearInterval(interval)
-  }, [isInView, value])
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>
+    if (!inView || value === 0) { setCount(value); return }
+    let cur = 0
+    const step = Math.max(1, Math.ceil(value / 40))
+    const id = setInterval(() => {
+      cur = Math.min(cur + step, value)
+      setCount(cur)
+      if (cur >= value) clearInterval(id)
+    }, 16)
+    return () => clearInterval(id)
+  }, [inView, value])
+  return <span ref={ref}>{count.toLocaleString()}</span>
 }
 
-function LoadingSkeleton() {
+function Skeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-24 bg-white/10 rounded-3xl" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-36 bg-white/10 rounded-2xl" />)}
+    <div className="space-y-5">
+      <div className="skeleton" style={{ height: 100, borderRadius: 20 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 110 }} />)}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 h-72 bg-white/10 rounded-2xl" />
-        <div className="lg:col-span-3 h-72 bg-white/10 rounded-2xl" />
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 16 }}>
+        <div className="skeleton" style={{ height: 280 }} />
+        <div className="skeleton" style={{ height: 280 }} />
       </div>
+    </div>
+  )
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: 'var(--color-surface-3)',
+      border: '1px solid var(--color-border-med)',
+      borderRadius: 10,
+      padding: '8px 12px',
+      fontSize: 12,
+    }}>
+      {payload.map((p: any) => (
+        <div key={p.name} style={{ color: p.color, fontWeight: 600 }}>
+          {p.name}: {p.value}
+        </div>
+      ))}
     </div>
   )
 }
@@ -52,249 +72,268 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const heroRef = useRef(null)
 
   useEffect(() => { fetchDashboard().then(setData).finally(() => setLoading(false)) }, [])
 
-  if (loading) return <LoadingSkeleton />
+  if (loading) return <Skeleton />
   if (!data) return (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-center">
-        <div className="text-6xl mb-4 opacity-30 animate-pulse">📊</div>
-        <p className="text-white/60 text-lg font-medium">Failed to load dashboard</p>
-        <button onClick={() => window.location.reload()} className="btn-premium mt-4">Retry</button>
-      </div>
+    <div className="empty-state">
+      <div className="empty-icon"><Package size={22} style={{ color: 'var(--color-text-muted)' }} /></div>
+      <p>Failed to load dashboard</p>
+      <span>Check your connection and try again</span>
+      <button onClick={() => window.location.reload()} className="btn btn-secondary btn-sm" style={{ marginTop: 12 }}>
+        Retry
+      </button>
     </div>
   )
 
-  const utilization = data.activeWarehouses > 0 ? Math.round((data.activeWarehouses / (data.activeWarehouses + 1)) * 100) : 0
-
   const totalStock = data.stockByCategory.reduce((s, c) => s + c.total, 0)
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  })()
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <motion.div
-        ref={heroRef}
-        variants={fadeUp}
-        className="relative overflow-hidden rounded-3xl hero-gradient text-white p-6 sm:p-8 shadow-2xl shadow-purple-500/10"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.3),transparent_60%)]" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/15 rounded-full blur-[60px]" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <motion.div variants={stagger} initial="hidden" animate="show" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Hero banner */}
+      <motion.div variants={item} className="hero-banner" style={{ padding: '24px 28px' }}>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] text-blue-200 font-semibold uppercase tracking-widest">Live Dashboard</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+              <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Live</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-              {user?.name || 'Dashboard'}
+            <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', margin: 0, color: 'var(--color-text-primary)' }}>
+              {greeting}, {user?.name?.split(' ')[0] || 'Admin'}
             </h1>
-            <p className="text-blue-200/70 text-sm mt-1">Real-time overview of your entire inventory.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {[
-              { label: 'Items', value: data.totalItems, gradient: 'from-blue-400 to-cyan-500', icon: '📦' },
-              { label: 'Value', value: `$${data.totalValue.toLocaleString()}`, gradient: 'from-emerald-400 to-teal-500', icon: '💰' },
-              { label: 'Warehouses', value: data.activeWarehouses, gradient: 'from-purple-400 to-pink-500', icon: '🏭' },
-            ].map(s => (
-              <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-xl px-4 py-2.5 text-center min-w-[80px] shadow-lg shadow-${s.gradient.split(' ')[0].replace('from-', '')}/30`}>
-                <p className="text-[18px] font-extrabold leading-tight">{s.value}</p>
-                <p className="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Items', value: data.totalItems, gauge: Math.round((data.totalItems / (data.totalItems + 10)) * 100), color: '#0071e3', icon: '📦', bg: 'from-blue-50 to-cyan-50' },
-          { label: 'Portfolio', value: `$${data.totalValue.toLocaleString()}`, gauge: 78, color: '#10b981', icon: '💰', bg: 'from-emerald-50 to-teal-50' },
-          { label: 'Low Stock', value: data.lowStock, gauge: 100 - Math.min(data.lowStock * 20, 100), color: '#f59e0b', icon: '⚠️', alert: data.lowStock > 0, bg: 'from-amber-50 to-orange-50' },
-          { label: 'Out of Stock', value: data.outStock, gauge: 100 - Math.min(data.outStock * 25, 100), color: '#ec4899', icon: '🚫', alert: data.outStock > 0, bg: 'from-pink-50 to-rose-50' },
-        ].map(s => (
-          <motion.div
-            key={s.label}
-            whileHover={{ y: -3, scale: 1.01 }}
-            className="premium-card p-5 relative overflow-hidden"
-          >
-            {s.alert && <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-400 animate-pulse" />}
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold">{s.label}</p>
-              <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>
-                {s.icon}
-              </div>
-            </div>
-            <p className="text-2xl font-extrabold text-gray-900">
-              {typeof s.value === 'number' ? <AnimatedCounter value={s.value} /> : s.value}
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '4px 0 0', fontWeight: 400 }}>
+              Real-time overview of your inventory
             </p>
-            <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${s.gauge}%` }}
-                transition={{ duration: 1, delay: 0.3, ease: [0.16,1,0.3,1] }}
-                className="h-full rounded-full"
-                style={{ background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
-              />
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 premium-card p-6 flex flex-col items-center justify-center">
-          <h3 className="text-sm font-bold text-gray-800 self-start mb-2">Stock Distribution</h3>
-          <p className="text-[10px] text-gray-400 self-start mb-4 font-medium uppercase tracking-wider">By category</p>
-          <div className="relative">
-            <ResponsiveContainer width={220} height={220}>
-              <PieChart>
-                <Pie data={data.stockByCategory} dataKey="total" nameKey="category" cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3}>
-                  {data.stockByCategory.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ background: '#fff', borderRadius: 16, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center">
-                <p className="text-3xl font-extrabold text-gray-900">{totalStock}</p>
-                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider -mt-0.5">Total</p>
-              </div>
-            </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-4">
-            {data.stockByCategory.map((c, i) => (
-              <div key={c.category} className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                <span className="text-[11px] text-gray-500 font-medium">{c.category}</span>
-                <span className="text-[11px] text-gray-900 font-bold">{c.total}</span>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[
+              { label: 'Items', value: data.totalItems, color: 'rgba(201,151,58,0.15)', border: 'rgba(201,151,58,0.25)', text: 'var(--color-brand-gold-light)' },
+              { label: 'Value', value: fmtCurrency(data.totalValue), color: 'rgba(5,150,105,0.12)', border: 'rgba(5,150,105,0.25)', text: '#10b981' },
+              { label: 'Warehouses', value: data.activeWarehouses, color: 'rgba(124,27,27,0.15)', border: 'rgba(160,32,32,0.25)', text: '#f87171' },
+            ].map(s => (
+              <div key={s.label} style={{
+                background: s.color,
+                border: `1px solid ${s.border}`,
+                borderRadius: 12, padding: '10px 16px',
+                textAlign: 'center', minWidth: 72
+              }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: s.text, letterSpacing: '-0.02em' }}>{s.value}</div>
+                <div style={{ fontSize: 9, color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
+      </motion.div>
 
-        <div className="lg:col-span-3 grid grid-cols-2 gap-4">
-          {[
-            { label: 'Suppliers Active', value: data.activeSuppliers, sub: 'vendors', color: '#06b6d4', icon: '🚚', bg: 'from-cyan-50 to-blue-50' },
-            { label: 'Pending POs', value: data.pendingPOs, sub: 'awaiting', color: '#f59e0b', icon: '📋', alert: data.pendingPOs > 0, bg: 'from-amber-50 to-orange-50' },
-            { label: 'Invoices Paid', value: data.paidInvoices, sub: 'completed', color: '#10b981', icon: '🧾', bg: 'from-emerald-50 to-teal-50' },
-            { label: 'Utilization', value: `${utilization}%`, sub: 'warehouse capacity', color: '#8b5cf6', icon: '🏭', gauge: utilization, bg: 'from-purple-50 to-violet-50' },
-          ].map((s, i) => (
+      {/* KPI grid */}
+      <motion.div variants={item} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+        {[
+          { label: 'Total Items', value: data.totalItems, icon: Package, color: '#c9973a', variant: 'stat-card-gold', prefix: '' },
+          { label: 'Portfolio Value', value: data.totalValue, icon: DollarSign, color: '#10b981', variant: 'stat-card-emerald', isCurrency: true },
+          { label: 'Low Stock', value: data.lowStock, icon: AlertTriangle, color: '#d97706', variant: data.lowStock > 0 ? 'stat-card-maroon' : '', alert: data.lowStock > 0 },
+          { label: 'Out of Stock', value: data.outStock, icon: XCircle, color: '#f87171', variant: data.outStock > 0 ? 'stat-card-maroon' : '', alert: data.outStock > 0 },
+          { label: 'Pending POs', value: data.pendingPOs, icon: ShoppingCart, color: '#818cf8', variant: '' },
+          { label: 'Paid Invoices', value: data.paidInvoices, icon: Receipt, color: '#10b981', variant: '' },
+          { label: 'Warehouses', value: data.activeWarehouses, icon: Warehouse, color: '#60a5fa', variant: '' },
+          { label: 'Suppliers', value: data.activeSuppliers, icon: Truck, color: '#c9973a', variant: '' },
+        ].map(s => {
+          const Icon = s.icon
+          return (
             <motion.div
               key={s.label}
               whileHover={{ y: -2 }}
-              className="premium-card p-5 flex flex-col justify-between"
+              className={`stat-card ${s.variant}`}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold">{s.label}</p>
-                  <p className="text-2xl font-extrabold text-gray-900 mt-1">{s.value}</p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">{s.sub}</p>
-                </div>
-                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>
-                  {s.icon}
+              {s.alert && (
+                <span style={{
+                  position: 'absolute', top: 12, right: 12,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: '#ef4444',
+                  animation: 'pulse 1.5s infinite'
+                }} />
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {s.label}
+                </span>
+                <div className="stat-icon" style={{ background: `${s.color}18` }}>
+                  <Icon size={15} style={{ color: s.color }} />
                 </div>
               </div>
-              {'gauge' in s && typeof s.gauge === 'number' && (
-                <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${s.gauge}%` }}
-                    transition={{ duration: 1, delay: 0.5 + i * 0.1, ease: [0.16,1,0.3,1] }}
-                    className="h-full rounded-full"
-                    style={{ background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
-                  />
-                </div>
-              )}
+              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                {s.isCurrency
+                  ? fmtCurrency(s.value as number)
+                  : <Counter value={s.value as number} />
+                }
+              </div>
             </motion.div>
-          ))}
-        </div>
+          )
+        })}
       </motion.div>
 
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="premium-card p-6">
-          <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-sm">⚠️</div>
-            <div>
-              <h3 className="text-sm font-bold text-gray-800">Low Stock Alerts</h3>
-              <p className="text-[10px] text-gray-400 font-medium">{data.lowStockItems.length} items need attention</p>
-            </div>
+      {/* Charts row */}
+      <motion.div variants={item} style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16 }}>
+
+        {/* Pie chart */}
+        <div className="card" style={{ padding: '20px 20px 16px' }}>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>Stock by Category</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{totalStock} units total</div>
           </div>
-          {data.lowStockItems.length === 0 ? (
-            <div className="flex flex-col items-center py-8">
-              <span className="text-4xl mb-3">✅</span>
-              <p className="text-gray-500 text-sm font-medium">All stock levels healthy</p>
+          {data.stockByCategory.length === 0 ? (
+            <div className="empty-state" style={{ padding: '32px 0' }}>
+              <p style={{ fontSize: 12 }}>No data yet</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {data.lowStockItems.map((item, i) => (
-                <motion.div
-                  key={item.sku}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50/50 rounded-2xl px-5 py-3.5 border border-amber-200/60"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center text-sm">📦</div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">{item.name}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">{item.sku}</p>
+            <>
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                <ResponsiveContainer width={180} height={180}>
+                  <PieChart>
+                    <Pie
+                      data={data.stockByCategory}
+                      dataKey="total"
+                      nameKey="category"
+                      cx="50%" cy="50%"
+                      innerRadius={52} outerRadius={82}
+                      paddingAngle={3}
+                    >
+                      {data.stockByCategory.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>{totalStock}</div>
+                  <div style={{ fontSize: 9, color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+                {data.stockByCategory.map((c, i) => (
+                  <div key={c.category} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 2, background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{c.category}</span>
                     </div>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)' }}>{c.total}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-extrabold text-amber-600">{item.quantity}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">min {item.minStock}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
-        <div className="premium-card p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-sm">📜</div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-800">Recent Activity</h3>
-                <p className="text-[10px] text-gray-400 font-medium">Latest events across your inventory</p>
+        {/* Low stock + activity */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Low Stock */}
+          <div className="card" style={{ padding: 20, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  background: 'rgba(217,119,6,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <AlertTriangle size={14} style={{ color: '#fbbf24' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>Low Stock Alerts</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{data.lowStockItems.length} items</div>
+                </div>
               </div>
+              <Link to="/items" style={{ fontSize: 11, color: 'var(--color-brand-gold-light)', fontWeight: 600, textDecoration: 'none' }}>
+                View all
+              </Link>
             </div>
-            <Link to="/activity" className="text-xs text-purple-600 hover:text-purple-700 hover:underline font-semibold">View all</Link>
-          </div>
-          {data.recentActivity.length === 0 ? (
-            <div className="flex flex-col items-center py-8">
-              <span className="text-4xl mb-3">📭</span>
-              <p className="text-gray-500 text-sm font-medium">No activity yet</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {data.recentActivity.slice(0, 6).map((a, i) => (
-                <motion.div
-                  key={a.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-purple-50/50 transition-colors"
-                >
-                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 ${
-                    a.action.includes('Received') ? 'bg-emerald-100' :
-                    a.action.includes('Paid') ? 'bg-blue-100' :
-                    'bg-gray-100'
-                  }`}>
-                    {a.action.includes('Received') ? '📥' : a.action.includes('Paid') ? '💰' : '📌'}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-700 font-semibold truncate">{a.details}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{a.userName} · {new Date(a.createdAt).toLocaleString()}</p>
+            {data.lowStockItems.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--color-text-muted)', fontSize: 13 }}>
+                All stock levels healthy ✓
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {data.lowStockItems.slice(0, 4).map(itm => (
+                  <div key={itm.sku} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    background: 'rgba(217,119,6,0.06)',
+                    border: '1px solid rgba(217,119,6,0.15)',
+                    borderRadius: 10
+                  }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{itm.name}</div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{itm.sku}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#fbbf24', letterSpacing: '-0.02em' }}>{itm.quantity}</div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>min {itm.minStock}</div>
+                    </div>
                   </div>
-                </motion.div>
-              ))}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Activity */}
+          <div className="card" style={{ padding: 20, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  background: 'rgba(201,151,58,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Clock size={14} style={{ color: 'var(--color-brand-gold-light)' }} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>Recent Activity</div>
+              </div>
+              <Link to="/activity" style={{ fontSize: 11, color: 'var(--color-brand-gold-light)', fontWeight: 600, textDecoration: 'none' }}>
+                View all
+              </Link>
             </div>
-          )}
+            {data.recentActivity.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--color-text-muted)', fontSize: 13 }}>
+                No activity yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {data.recentActivity.slice(0, 5).map((a) => (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0' }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: 6,
+                      background: 'rgba(255,255,255,0.05)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, marginTop: 1
+                    }}>
+                      <TrendingUp size={11} style={{ color: 'var(--color-text-muted)' }} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {a.details}
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>
+                        {a.userName} · {fmtDateTime(a.createdAt)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </motion.div>

@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { fetchActivities } from '../api'
 import type { ActivityLog } from '../types'
+import { Activity, Package, DollarSign, RefreshCw, ArrowDownToLine, Tag } from 'lucide-react'
+import { fmtDateTime } from '../lib/utils'
+
+const ACTION_MAP: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
+  'PO Received': { icon: ArrowDownToLine, color: '#10b981', bg: 'rgba(5,150,105,0.1)' },
+  'Invoice Paid': { icon: DollarSign, color: '#c9973a', bg: 'rgba(201,151,58,0.1)' },
+  'Stock Transfer': { icon: RefreshCw, color: '#818cf8', bg: 'rgba(99,102,241,0.1)' },
+  'Stock updated': { icon: Package, color: '#fbbf24', bg: 'rgba(217,119,6,0.1)' },
+  'Category created': { icon: Tag, color: '#60a5fa', bg: 'rgba(37,99,235,0.1)' },
+}
 
 export default function ActivityLogPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([])
@@ -9,56 +18,91 @@ export default function ActivityLogPage() {
 
   useEffect(() => { fetchActivities(200).then(setLogs).finally(() => setLoading(false)) }, [])
 
-  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading...</div>
-
-  const actionIcons: Record<string, { icon: string; bg: string }> = {
-    'PO Received': { icon: '📥', bg: 'from-emerald-100 to-green-100' },
-    'Invoice Paid': { icon: '💰', bg: 'from-blue-100 to-cyan-100' },
-    'Stock Transfer': { icon: '🔄', bg: 'from-purple-100 to-violet-100' },
-    'Stock updated': { icon: '📦', bg: 'from-amber-100 to-orange-100' },
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="skeleton" style={{ height: 50 }} />
+      {[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 56 }} />)}
+    </div>
+  )
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-red-400 bg-clip-text text-transparent">Activity Log</span>
-        </h1>
-        <p className="text-sm text-blue-200/70 mt-0.5">{logs.length} events</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="page-header" style={{ marginBottom: 0 }}>
+        <div>
+          <h1 className="page-title">Activity Log</h1>
+          <p className="page-subtitle">{logs.length} event{logs.length !== 1 ? 's' : ''}</p>
+        </div>
       </div>
 
-      <div className="premium-card overflow-hidden">
+      <div className="card" style={{ overflow: 'hidden' }}>
         {logs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-3 opacity-50">📜</div>
-            <p className="text-gray-400 text-sm font-medium">No activity recorded yet</p>
+          <div className="empty-state">
+            <div className="empty-icon"><Activity size={20} style={{ color: 'var(--color-text-muted)' }} /></div>
+            <p>No activity recorded yet</p>
+            <span>Events will appear here as you use the system</span>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div>
             {logs.map((log, i) => {
-              const action = actionIcons[log.action] || { icon: '📌', bg: 'from-gray-100 to-gray-50' }
+              const act = ACTION_MAP[log.action] || { icon: Activity, color: 'var(--color-text-muted)', bg: 'rgba(255,255,255,0.05)' }
+              const Icon = act.icon
               return (
-                <motion.div
+                <div
                   key={log.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.015 }}
-                  className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-purple-50/30 hover:to-transparent transition-colors"
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 12,
+                    padding: '12px 20px',
+                    borderBottom: i < logs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                    transition: 'background 0.1s'
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <span className={`w-8 h-8 rounded-xl bg-gradient-to-br ${action.bg} flex items-center justify-center text-sm shrink-0 shadow-sm`}>
-                    {action.icon}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 font-semibold">{log.details}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[11px] text-gray-400 font-medium">{log.userName || 'System'}</span>
-                      <span className="text-gray-300">·</span>
-                      <span className="text-[11px] text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
-                      <span className="text-gray-300">·</span>
-                      <span className="text-[11px] text-gray-400 font-mono">{log.entityType} #{log.entityId?.slice(0, 8) || ''}</span>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 9,
+                    background: act.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginTop: 1
+                  }}>
+                    <Icon size={14} style={{ color: act.color }} />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
+                      {log.details}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                        {log.userName || 'System'}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>·</span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                        {fmtDateTime(log.createdAt)}
+                      </span>
+                      {log.entityType && (
+                        <>
+                          <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>·</span>
+                          <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', borderRadius: 4, padding: '1px 6px' }}>
+                            {log.entityType}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
-                </motion.div>
+
+                  <div style={{
+                    flexShrink: 0,
+                    fontSize: 10, fontWeight: 600,
+                    color: act.color,
+                    background: act.bg,
+                    border: `1px solid ${act.color}30`,
+                    borderRadius: 100,
+                    padding: '2px 8px',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {log.action}
+                  </div>
+                </div>
               )
             })}
           </div>

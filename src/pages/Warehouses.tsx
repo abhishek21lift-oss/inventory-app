@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { fetchWarehouses, fetchItems, fetchCategories, updateWarehouse } from '../api'
 import type { Warehouse, Item, Category } from '../types'
-import {
-  PieChart, Pie, Cell, ResponsiveContainer
-} from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { Warehouse as WarehouseIcon, Package, DollarSign, AlertTriangle, XCircle, Pencil, X } from 'lucide-react'
+import { fmtCurrency } from '../lib/utils'
 
-const COLORS = ['#0071e3', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#eab308']
-
-const catColorMap: Record<string, string> = {
+const PIE_COLORS = ['#c9973a', '#7c1b1b', '#059669', '#2563eb', '#7c3aed', '#d97706', '#0e7490']
+const CAT_CLASS: Record<string, string> = {
   'Cardio': 'cat-cardio', 'Strength': 'cat-strength', 'Free Weights': 'cat-free-weights',
   'Machines': 'cat-machines', 'Accessories': 'cat-accessories', 'Supplements': 'cat-supplements', 'Apparel': 'cat-apparel',
 }
@@ -23,15 +22,18 @@ export default function Warehouses() {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editLoc, setEditLoc] = useState('')
-  const [toast, setToast] = useState('')
-  const show = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000) }
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+
+  const show = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   const load = async (whId?: string) => {
     try {
       const [whs, cats] = await Promise.all([fetchWarehouses(), fetchCategories()])
       setWarehouses(whs)
-      const targetId = whId || (whs.length > 0 ? whs[0].id : '')
-      const wh = whs.find(w => w.id === targetId) || whs[0] || null
+      const wh = whs.find(w => w.id === whId) || whs[0] || null
       setWarehouse(wh)
       setCategories(cats)
       if (wh) {
@@ -40,252 +42,251 @@ export default function Warehouses() {
       } else {
         setItems([])
       }
-    } catch { show('Failed to load') }
+    } catch { show('Failed to load', 'error') }
     finally { setLoading(false) }
   }
+
   useEffect(() => { load() }, [])
 
-  const switchWarehouse = (id: string) => {
+  const switchWarehouse = async (id: string) => {
     const wh = warehouses.find(w => w.id === id)
-    if (wh) {
-      setWarehouse(wh)
-      setLoading(true)
-      fetchItems({ warehouseId: wh.id }).then(setItems).finally(() => setLoading(false))
-    }
+    if (!wh) return
+    setWarehouse(wh)
+    setLoading(true)
+    try {
+      const its = await fetchItems({ warehouseId: wh.id })
+      setItems(its)
+    } finally { setLoading(false) }
   }
 
-  const handleEdit = async () => {
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!warehouse) return
     try {
       await updateWarehouse(warehouse.id, { name: editName, location: editLoc })
       setWarehouse({ ...warehouse, name: editName, location: editLoc })
-      show('Updated')
+      show('Warehouse updated')
       setEditing(false)
-    } catch { show('Failed') }
+    } catch { show('Failed to update', 'error') }
   }
 
-  const catCount = categories.length
   const totalValue = items.reduce((s, i) => s + i.price * i.quantity, 0)
-  const lowItems = items.filter(i => i.quantity > 0 && i.quantity <= i.minStock)
-  const outItems = items.filter(i => i.quantity === 0)
+  const lowItems = items.filter(i => i.quantity > 0 && i.quantity <= i.minStock).length
+  const outItems = items.filter(i => i.quantity === 0).length
 
   const stockByCat = categories.map(c => ({
     category: c.name,
     total: items.filter(i => i.category === c.name).reduce((s, i) => s + i.quantity, 0),
   })).filter(c => c.total > 0)
 
-  const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
-  const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16,1,0.3,1] as const } } }
-
   if (loading) return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-36 bg-white/10 rounded-3xl" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-white/10 rounded-2xl" />)}
-      </div>
-      <div className="h-72 bg-white/10 rounded-2xl" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: i === 0 ? 100 : 200 }} />)}
     </div>
   )
 
   if (!warehouse) return (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-center">
-        <div className="text-5xl mb-4 opacity-30">🏭</div>
-        <p className="text-white/60 text-lg font-medium">No warehouse found</p>
-        <Link to="/items" className="btn-premium mt-4 inline-flex">Go to Items</Link>
-      </div>
+    <div className="empty-state">
+      <div className="empty-icon"><WarehouseIcon size={22} style={{ color: 'var(--color-text-muted)' }} /></div>
+      <p>No warehouses found</p>
+      <span>Contact an administrator to set up warehouses</span>
     </div>
   )
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <motion.div variants={fadeUp} className="relative overflow-hidden rounded-3xl hero-gradient text-white shadow-2xl shadow-purple-500/10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.3),transparent_60%)]" />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/15 rounded-full blur-[60px]" />
-        <div className="relative p-6 sm:p-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-[10px] text-blue-200 font-semibold uppercase tracking-widest">{warehouse.isActive ? 'Active' : 'Inactive'}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25">🏭</div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{warehouse.name}</h1>
-                  <p className="text-blue-200/70 text-sm mt-0.5 font-medium">{warehouse.location || 'No location set'} · ID: {warehouse.id}</p>
-                </div>
-              </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Header */}
+      <div className="hero-banner" style={{ padding: '20px 24px' }}>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12,
+              background: 'rgba(201,151,58,0.12)',
+              border: '1px solid rgba(201,151,58,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <WarehouseIcon size={20} style={{ color: 'var(--color-brand-gold-light)' }} />
             </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={warehouse.id}
-                onChange={e => switchWarehouse(e.target.value)}
-                className="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 text-sm font-semibold transition-all text-white outline-none cursor-pointer"
-              >
-                {warehouses.map(w => (
-                  <option key={w.id} value={w.id} className="text-gray-900 bg-white">{w.name}</option>
-                ))}
-              </select>
-              <button
-                onClick={() => { setEditing(true); setEditName(warehouse.name); setEditLoc(warehouse.location || '') }}
-                className="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2 text-sm font-semibold transition-all"
-              >
-                ✏️ Edit
-              </button>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>{warehouse.name}</h1>
+                <span className={`badge ${warehouse.isActive ? 'badge-emerald' : 'badge-red'}`}>
+                  {warehouse.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+                {warehouse.location || 'No location set'}
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2.5 mt-5">
-            <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-4 py-1.5 text-[11px] font-semibold backdrop-blur-sm border border-white/10">📦 {items.length} items stored</span>
-            <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-4 py-1.5 text-[11px] font-semibold backdrop-blur-sm border border-white/10">📂 {catCount} categories</span>
-            <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-4 py-1.5 text-[11px] font-semibold backdrop-blur-sm border border-white/10">💰 ${totalValue.toLocaleString()} value</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <select
+              value={warehouse.id}
+              onChange={e => switchWarehouse(e.target.value)}
+              className="input"
+              style={{ width: 'auto', fontSize: 12 }}
+            >
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => { setEditing(true); setEditName(warehouse.name); setEditLoc(warehouse.location || '') }}
+            >
+              <Pencil size={13} /> Edit
+            </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
         {[
-          { label: 'Total Items', value: items.length, icon: '📦', color: '#0071e3', bg: 'from-blue-50 to-cyan-50' },
-          { label: 'Total Value', value: `$${totalValue.toLocaleString()}`, icon: '💰', color: '#10b981', bg: 'from-emerald-50 to-teal-50' },
-          { label: 'Low Stock', value: lowItems.length, icon: '⚠️', color: '#f59e0b', alert: lowItems.length > 0, bg: 'from-amber-50 to-orange-50' },
-          { label: 'Out of Stock', value: outItems.length, icon: '🚫', color: '#ec4899', alert: outItems.length > 0, bg: 'from-pink-50 to-rose-50' },
-        ].map(s => (
-          <motion.div
-            key={s.label}
-            whileHover={{ y: -3 }}
-            className="premium-card p-5 relative"
-          >
-            {s.alert && <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-400 animate-pulse" />}
-            <div className="flex items-start justify-between mb-2">
-              <p className="text-[10px] text-gray-400 uppercase tracking-[0.15em] font-semibold">{s.label}</p>
-              <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center text-lg shadow-sm`}>{s.icon}</div>
+          { label: 'Total Items', value: items.length, icon: Package, color: '#c9973a' },
+          { label: 'Total Value', value: fmtCurrency(totalValue), icon: DollarSign, color: '#10b981', raw: true },
+          { label: 'Low Stock', value: lowItems, icon: AlertTriangle, color: '#fbbf24', alert: lowItems > 0 },
+          { label: 'Out of Stock', value: outItems, icon: XCircle, color: '#f87171', alert: outItems > 0 },
+        ].map(s => {
+          const Icon = s.icon
+          return (
+            <div key={s.label} className="stat-card" style={{ position: 'relative' }}>
+              {s.alert && <span style={{ position: 'absolute', top: 12, right: 12, width: 6, height: 6, borderRadius: '50%', background: '#ef4444', animation: 'pulse 1.5s infinite' }} />}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 10, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{s.label}</span>
+                <div className="stat-icon" style={{ background: `${s.color}18` }}>
+                  <Icon size={14} style={{ color: s.color }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>
+                {s.raw ? s.value : s.value}
+              </div>
             </div>
-            <p className="text-2xl font-extrabold text-gray-900">{s.value}</p>
-          </motion.div>
-        ))}
-      </motion.div>
+          )
+        })}
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={fadeUp} className="lg:col-span-1 premium-card p-6">
-          <h3 className="text-sm font-bold text-gray-800 mb-1">Stock by Category</h3>
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-4">At {warehouse.name}</p>
+      {/* Chart + Table */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
+        {/* Pie */}
+        <div className="card" style={{ padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>Stock by Category</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 14 }}>At {warehouse.name}</div>
           {stockByCat.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="text-gray-400 text-sm">No stock data</p>
-            </div>
+            <div className="empty-state" style={{ padding: '24px 0' }}><p style={{ fontSize: 12 }}>No stock data</p></div>
           ) : (
             <>
-              <div className="flex justify-center">
-                <ResponsiveContainer width={200} height={200}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <ResponsiveContainer width={160} height={160}>
                   <PieChart>
-                    <Pie data={stockByCat} dataKey="total" nameKey="category" cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3}>
-                      {stockByCat.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie data={stockByCat} dataKey="total" nameKey="category" cx="50%" cy="50%" innerRadius={44} outerRadius={72} paddingAngle={3}>
+                      {stockByCat.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />)}
                     </Pie>
+                    <Tooltip contentStyle={{ background: 'var(--color-surface-3)', border: '1px solid var(--color-border-med)', borderRadius: 10, fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 10 }}>
                 {stockByCat.map((c, i) => (
-                  <div key={c.category} className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span className="text-[11px] text-gray-500 font-medium">{c.category}</span>
-                    <span className="text-[11px] text-gray-900 font-bold">{c.total}</span>
+                  <div key={c.category} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: 2, background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{c.category}</span>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-primary)' }}>{c.total}</span>
                   </div>
                 ))}
               </div>
             </>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div variants={fadeUp} className="lg:col-span-2 premium-card overflow-hidden">
-          <div className="p-5 pb-3 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-gray-800">Items in Warehouse</h3>
-            <Link to="/items" className="text-xs text-purple-600 hover:text-purple-700 hover:underline font-semibold">Manage all</Link>
+        {/* Items table */}
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>Items in {warehouse.name}</span>
+            <Link to="/items" style={{ fontSize: 11, color: 'var(--color-brand-gold-light)', fontWeight: 600, textDecoration: 'none' }}>Manage all</Link>
           </div>
           {items.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-3 opacity-50">📦</div>
-              <p className="text-gray-400 text-sm font-medium">No items in this warehouse</p>
-              <Link to="/items" className="text-purple-600 hover:text-purple-700 hover:underline text-xs font-semibold mt-2 inline-block">Add items</Link>
+            <div className="empty-state" style={{ padding: '40px 0' }}>
+              <p style={{ fontSize: 13 }}>No items in this warehouse</p>
+              <Link to="/items" style={{ fontSize: 12, color: 'var(--color-brand-gold-light)', fontWeight: 600 }}>Add items</Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="table-premium">
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table">
                 <thead>
                   <tr>
                     <th>Item</th>
-                    <th>SKU</th>
                     <th>Category</th>
                     <th>Condition</th>
-                    <th className="text-right">Qty</th>
-                    <th className="text-right">Price</th>
+                    <th style={{ textAlign: 'right' }}>Qty</th>
+                    <th style={{ textAlign: 'right' }}>Price</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item, i) => (
-                    <motion.tr
-                      key={item.id}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.02 }}
-                      className={`${item.quantity === 0 ? 'row-out' : item.quantity <= item.minStock ? 'row-low' : ''}`}
-                    >
-                      <td className="font-semibold text-gray-800">{item.name}</td>
-                      <td className="font-mono text-xs text-gray-400">{item.sku}</td>
+                  {items.map(item => (
+                    <tr key={item.id} className={item.quantity === 0 ? 'row-danger' : item.quantity <= item.minStock ? 'row-warning' : ''}>
+                      <td><span className="cell-primary">{item.name}</span></td>
+                      <td><span className={`cat-pill ${CAT_CLASS[item.category] || 'cat-accessories'}`}>{item.category}</span></td>
                       <td>
-                        <span className={`cat-pill ${catColorMap[item.category] || 'cat-accessories'}`}>{item.category}</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 600,
+                          color: item.condition === 'New' ? '#10b981' : item.condition === 'Good' ? '#60a5fa' : item.condition === 'Fair' ? '#fbbf24' : '#f87171'
+                        }}>{item.condition}</span>
                       </td>
-                      <td>
-                        <span className={`font-semibold text-xs ${
-                          item.condition === 'New' ? 'text-green-600' :
-                          item.condition === 'Good' ? 'text-blue-600' :
-                          item.condition === 'Fair' ? 'text-orange-600' : 'text-red-600'
-                        }`}>{item.condition}</span>
-                      </td>
-                      <td className="text-right">
-                        <span className={`font-extrabold ${item.quantity <= item.minStock ? 'text-orange-600' : 'text-gray-900'}`}>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 700, color: item.quantity === 0 ? '#f87171' : item.quantity <= item.minStock ? '#fbbf24' : 'var(--color-text-primary)' }}>
                           {item.quantity}
                         </span>
                       </td>
-                      <td className="text-right font-semibold text-gray-800">${item.price.toFixed(2)}</td>
-                    </motion.tr>
+                      <td style={{ textAlign: 'right', color: 'var(--color-brand-gold-light)', fontWeight: 600, fontSize: 13 }}>
+                        ${item.price.toFixed(2)}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
+      {/* Edit modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setEditing(false)}>
-          <div className="relative rounded-2xl p-[1px] bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 shadow-2xl shadow-teal-500/20 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-            <div className="bg-white rounded-2xl p-6">
-              <h2 className="text-lg font-bold">
-                <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">✏️ Edit Warehouse</span>
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5 mb-4">Update warehouse details</p>
-              <form onSubmit={e => { e.preventDefault(); handleEdit() }} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
-                  <input required value={editName} onChange={e => setEditName(e.target.value)} className="input-apple w-full" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
-                  <input value={editLoc} onChange={e => setEditLoc(e.target.value)} className="input-apple w-full" placeholder="e.g. Downtown" />
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setEditing(false)} className="btn-light">Cancel</button>
-                  <button type="submit" className="btn-premium">Save Changes</button>
-                </div>
-              </form>
+        <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={() => setEditing(false)}>
+          <motion.div
+            className="modal"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2 className="modal-title">Edit Warehouse</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditing(false)}><X size={16} /></button>
             </div>
-          </div>
-        </div>
+            <form onSubmit={handleEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="input-label">Name</label>
+                  <input required value={editName} onChange={e => setEditName(e.target.value)} className="input" />
+                </div>
+                <div className="form-group">
+                  <label className="input-label">Location</label>
+                  <input value={editLoc} onChange={e => setEditLoc(e.target.value)} className="input" placeholder="e.g. Downtown" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
       )}
 
-      {toast && <div className="toast toast-success">{toast}</div>}
-    </motion.div>
+      {toast && (
+        <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>{toast.msg}</div>
+      )}
+    </div>
   )
 }

@@ -2,189 +2,186 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import {
+  LayoutDashboard, Package, Warehouse, Truck, ClipboardList,
+  Receipt, Activity, LogOut, Menu
+} from 'lucide-react'
+import { getInitials } from '../lib/utils'
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: '📊', color: 'from-blue-400 to-cyan-400' },
-  { path: '/items', label: 'Items', icon: '📦', color: 'from-purple-400 to-pink-400' },
-  { path: '/warehouses', label: 'Warehouses', icon: '🏭', color: 'from-emerald-400 to-teal-400' },
-  { path: '/suppliers', label: 'Suppliers', icon: '🚚', color: 'from-orange-400 to-rose-400' },
-  { path: '/purchase-orders', label: 'POs', icon: '📋', color: 'from-indigo-400 to-violet-400' },
-  { path: '/invoices', label: 'Invoices', icon: '🧾', color: 'from-green-400 to-emerald-400' },
-  { path: '/activity', label: 'Activity', icon: '📜', color: 'from-pink-400 to-rose-400' },
+const navGroups = [
+  {
+    label: 'Overview',
+    items: [
+      { path: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    ]
+  },
+  {
+    label: 'Inventory',
+    items: [
+      { path: '/items', label: 'Items', icon: Package, end: false },
+      { path: '/warehouses', label: 'Warehouses', icon: Warehouse, end: false },
+      { path: '/suppliers', label: 'Suppliers', icon: Truck, end: false },
+    ]
+  },
+  {
+    label: 'Transactions',
+    items: [
+      { path: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList, end: false },
+      { path: '/invoices', label: 'Invoices', icon: Receipt, end: false },
+    ]
+  },
+  {
+    label: 'Logs',
+    items: [
+      { path: '/activity', label: 'Activity', icon: Activity, end: false },
+    ]
+  }
 ]
 
-export default function Layout() {
+function SidebarContent({ onNav }: { onNav?: () => void }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+    onNav?.()
+  }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #1a1a3e 25%, #24243e 50%, #1a1a3e 75%, #0f0c29 100%)' }}>
-      <header className="sticky top-0 z-50">
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <NavLink to="/" className="flex items-center gap-3 shrink-0 group">
-              <motion.img
-                whileHover={{ scale: 1.1, rotate: -5 }}
-                src="/logo.png"
-                alt="Logo"
-                className="w-11 h-11 rounded-xl shadow-xl shadow-purple-500/40 ring-2 ring-white/40 object-cover brightness-110"
-              />
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-black tracking-tight leading-none">
-                  <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(139,92,246,0.5)]">619</span>
-                  <span className="text-white font-black ml-1.5 drop-shadow-[0_2px_6px_rgba(255,255,255,0.3)]">NUTRITION</span>
-                </h1>
-                <p className="text-[9px] text-blue-200/80 tracking-[0.15em] uppercase font-semibold mt-0">Gym Inventory</p>
-              </div>
-            </NavLink>
+    <>
+      <div className="sidebar-header">
+        <NavLink to="/" className="sidebar-logo" onClick={onNav}>
+          <img src="/logo.png" alt="619 Nutrition" className="sidebar-logo-img" />
+          <div className="sidebar-brand">
+            <div className="sidebar-brand-name">
+              <span>619</span>
+              <span> NUTRITION</span>
+            </div>
+            <div className="sidebar-brand-sub">Inventory</div>
+          </div>
+        </NavLink>
+      </div>
 
-            <nav className="hidden md:flex items-center gap-1 px-4">
-              {navItems.map((item) => (
+      <nav className="sidebar-nav">
+        {navGroups.map(group => (
+          <div key={group.label}>
+            <div className="nav-section-label">{group.label}</div>
+            {group.items.map(item => {
+              const Icon = item.icon
+              return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) =>
-                    `relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
-                      isActive
-                        ? 'text-white'
-                        : 'text-gray-400 hover:text-gray-200'
-                    }`
-                  }
+                  end={item.end}
+                  onClick={onNav}
+                  className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
                 >
-                  {({ isActive }) => (
-                    <>
-                      {isActive && (
-                        <motion.span
-                          layoutId="navActive"
-                          className={`absolute inset-0 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}
-                          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                        />
-                      )}
-                      <span className="relative z-10 flex items-center gap-1.5">
-                        <span className="text-[15px]">{item.icon}</span>
-                        <span className="relative z-10">{item.label}</span>
-                      </span>
-                    </>
-                  )}
+                  <span className="nav-item-icon">
+                    <Icon size={14} />
+                  </span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
                 </NavLink>
-              ))}
-            </nav>
+              )
+            })}
+          </div>
+        ))}
+      </nav>
 
-            <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
-                >
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </motion.div>
-                <div className="text-right">
-                  <p className="text-[11px] font-semibold text-gray-600 leading-tight">{user?.name || 'User'}</p>
-                  <p className="text-[9px] text-gray-400 capitalize font-medium leading-tight">{user?.role}</p>
-                </div>
-                <motion.button
-                  onClick={handleLogout}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="text-gray-300 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-red-500/10 ml-1"
-                  title="Logout"
-                >
-                  ⏻
-                </motion.button>
-              </div>
+      <div className="sidebar-footer">
+        <div className="user-card" onClick={handleLogout} title="Sign out">
+          <div className="user-avatar">
+            {getInitials(user?.name || 'U')}
+          </div>
+          <div className="user-info">
+            <div className="user-name">{user?.name || 'User'}</div>
+            <div className="user-role">{user?.role}</div>
+          </div>
+          <LogOut size={13} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+        </div>
+      </div>
+    </>
+  )
+}
 
-              <motion.button
-                onClick={() => setMobileOpen(prev => !prev)}
-                whileTap={{ scale: 0.9 }}
-                className="md:hidden relative w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 rounded-lg hover:bg-white/10 transition-colors"
-                aria-label="Toggle menu"
-              >
-                <div className="relative w-4 h-3.5">
-                  <span className={`absolute left-0 top-0 w-full h-[2px] bg-current rounded-full transition-all duration-200 ${mobileOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
-                  <span className={`absolute left-0 top-1/2 -translate-y-[1px] w-full h-[2px] bg-current rounded-full transition-all duration-200 ${mobileOpen ? 'opacity-0 scale-x-0' : ''}`} />
-                  <span className={`absolute left-0 bottom-0 w-full h-[2px] bg-current rounded-full transition-all duration-200 ${mobileOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
-                </div>
-              </motion.button>
+export default function Layout() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const { user } = useAuth()
+
+  return (
+    <div className="app-layout">
+      {/* Desktop Sidebar */}
+      <aside className="sidebar hidden md:flex flex-col">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              className="mobile-overlay visible"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.aside
+              className="sidebar flex flex-col md:hidden"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+            >
+              <SidebarContent onNav={() => setMobileOpen(false)} />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <div className="app-main">
+        {/* Top bar (mobile only for hamburger, desktop for breadcrumb/actions) */}
+        <header className="top-bar">
+          <button
+            className="md:hidden btn btn-ghost btn-icon mr-1"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={18} />
+          </button>
+
+          <div style={{ flex: 1 }} />
+
+          {/* Could add global search / notifications here */}
+          <div className="hidden md:flex items-center gap-2">
+            <div
+              style={{
+                width: 28, height: 28,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, var(--color-brand-maroon), var(--color-brand-maroon-light))',
+                border: '1px solid rgba(201,151,58,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: 'var(--color-brand-gold-light)',
+                cursor: 'default'
+              }}
+            >
+              {getInitials(user?.name || 'U')}
             </div>
           </div>
-        </div>
+        </header>
 
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2, ease: [0.16,1,0.3,1] as const }}
-              className="md:hidden border-t border-white/10 bg-white/95 backdrop-blur-xl shadow-lg overflow-hidden"
-            >
-              <nav className="px-3 py-2 space-y-0.5">
-                {navItems.map((item, i) => (
-                  <motion.div
-                    key={item.path}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                  >
-                    <NavLink
-                      to={item.path}
-                      end={item.path === '/'}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          isActive
-                            ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-l-2 border-purple-500'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                        }`
-                      }
-                    >
-                      <span className="text-base">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </NavLink>
-                  </motion.div>
-                ))}
-                <div className="border-t border-gray-100 pt-2 mt-2 pb-1 px-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-800">{user?.name || 'User'}</p>
-                        <p className="text-[10px] text-gray-400 capitalize font-medium">{user?.role}</p>
-                      </div>
-                    </div>
-                    <motion.button
-                      onClick={handleLogout}
-                      whileTap={{ scale: 0.9 }}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 text-lg"
-                      title="Logout"
-                    >
-                      ⏻
-                    </motion.button>
-                  </div>
-                </div>
-              </nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <motion.div
-          key={window.location.pathname}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.16,1,0.3,1] as const }}
-        >
-          <Outlet />
-        </motion.div>
-      </main>
+        <main className="page-content">
+          <motion.div
+            key={typeof window !== 'undefined' ? window.location.pathname : ''}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Outlet />
+          </motion.div>
+        </main>
+      </div>
     </div>
   )
 }
+
