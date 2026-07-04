@@ -6,6 +6,7 @@ import ItemList from '../components/ItemList'
 import ItemForm from '../components/ItemForm'
 import ItemDetail from '../components/ItemDetail'
 import CategoryManager from '../components/CategoryManager'
+import { Package, Tag } from 'lucide-react'
 
 export default function Items() {
   const [items, setItems] = useState<Item[]>([])
@@ -37,6 +38,7 @@ export default function Items() {
     } catch { showToast('Failed to load', 'error') }
     finally { setLoading(false) }
   }
+
   useEffect(() => { load() }, [])
 
   const filtered = useMemo(() => {
@@ -74,34 +76,38 @@ export default function Items() {
   }, [])
 
   const handleDelete = useCallback(async (id: string) => {
-    try { await deleteItem(id); showToast('Deleted'); load() } catch { showToast('Delete failed', 'error') }
+    try { await deleteItem(id); showToast('Item deleted'); load() } catch { showToast('Delete failed', 'error') }
   }, [])
 
   const handleDuplicate = useCallback(async (id: string) => {
-    try { await duplicateItem(id); showToast('Duplicated'); load() } catch { showToast('Duplicate failed', 'error') }
+    try { await duplicateItem(id); showToast('Item duplicated'); load() } catch { showToast('Duplicate failed', 'error') }
   }, [])
 
   const handleAdjustStock = useCallback(async (id: string, change: number, note?: string) => {
-    try { await adjustStock(id, change, note); showToast(change > 0 ? `+${change}` : `${change}`); load() } catch { showToast('Stock failed', 'error') }
+    try { await adjustStock(id, change, note); showToast(change > 0 ? `+${change} added` : `${change} removed`); load() } catch { showToast('Stock update failed', 'error') }
   }, [])
 
-  if (loading) return <div className="text-center py-20 text-lg text-white/50 font-medium">Loading items...</div>
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="skeleton" style={{ height: 50 }} />
+      <div className="skeleton" style={{ height: 44 }} />
+      {[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 48 }} />)}
+    </div>
+  )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Items</span>
-          </h1>
-          <p className="text-sm text-blue-200/70 mt-0.5">{items.length} total</p>
+          <h1 className="page-title">Items</h1>
+          <p className="page-subtitle">{items.length} item{items.length !== 1 ? 's' : ''} in inventory</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowCategoryManager(true)} className="btn-light flex items-center gap-1.5 text-sm">
-            Manage Categories
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowCategoryManager(true)}>
+            <Tag size={13} /> Categories
           </button>
-          <button onClick={() => { setEditItem(undefined); setShowForm(true) }} className="btn-premium flex items-center gap-1.5">
-            + Add Item
+          <button className="btn btn-primary" onClick={() => { setEditItem(undefined); setShowForm(true) }}>
+            <Package size={14} /> Add Item
           </button>
         </div>
       </div>
@@ -131,12 +137,10 @@ export default function Items() {
       {detailItem && (
         <ItemDetail
           item={detailItem} onClose={() => setDetailItem(undefined)}
-          onEdit={(item) => { setEditItem(item); setShowForm(true) }}
+          onEdit={(item) => { setDetailItem(undefined); setEditItem(item); setShowForm(true) }}
           onAdjustStock={handleAdjustStock}
         />
       )}
-
-      {toast && <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>{toast.message}</div>}
 
       {showCategoryManager && (
         <CategoryManager
@@ -154,18 +158,20 @@ export default function Items() {
               await updateCategory(id, name)
               showToast('Category renamed')
               load()
-            } catch { showToast('Failed to rename category', 'error') }
+            } catch { showToast('Failed to rename', 'error') }
           }}
           onDelete={async (id) => {
             try {
               await deleteCategory(id)
               showToast('Category deleted')
               load()
-            } catch { showToast('Failed to delete category', 'error') }
+            } catch { showToast('Failed to delete', 'error') }
           }}
           onClose={() => setShowCategoryManager(false)}
         />
       )}
+
+      {toast && <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>{toast.message}</div>}
     </div>
   )
 }

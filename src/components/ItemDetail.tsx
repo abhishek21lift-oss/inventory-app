@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { Item, StockHistoryEntry } from '../types'
 import * as api from '../api'
+import { X, Pencil, ArrowUpDown, TrendingUp, TrendingDown } from 'lucide-react'
+import { fmtCurrency, fmtDate, stockStatus } from '../lib/utils'
+import StockBadge from './StockBadge'
 
 interface ItemDetailProps {
   item: Item
@@ -10,108 +13,193 @@ interface ItemDetailProps {
   onAdjustStock: (id: string, change: number, note?: string) => void
 }
 
-const conditionColors: Record<string, string> = {
-  'New': 'text-green-600', 'Good': 'text-blue-600', 'Fair': 'text-orange-600', 'Needs Service': 'text-red-600',
+const CONDITION_COLORS: Record<string, string> = {
+  'New': '#10b981', 'Good': '#60a5fa', 'Fair': '#fbbf24', 'Needs Service': '#f87171',
+}
+
+function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--color-text-primary)', fontWeight: 500 }}>{value}</div>
+    </div>
+  )
 }
 
 export default function ItemDetail({ item, onClose, onEdit, onAdjustStock }: ItemDetailProps) {
   const [history, setHistory] = useState<StockHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const status = stockStatus(item.quantity, item.minStock)
 
-  useEffect(() => { api.fetchItemHistory(item.id).then(setHistory).finally(() => setLoading(false)) }, [item.id])
+  useEffect(() => {
+    api.fetchItemHistory(item.id).then(setHistory).finally(() => setLoading(false))
+  }, [item.id])
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-sm" onClick={onClose}>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', justifyContent: 'flex-end', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ x: '100%', opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: '100%', opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="w-full max-w-lg bg-white border-l border-gray-100 h-full overflow-y-auto shadow-2xl shadow-gray-200"
+        className="panel"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', stiffness: 340, damping: 34 }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 space-y-6">
-          <div className="flex items-start justify-between">
+        {/* Header */}
+        <div className="panel-header">
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, lineHeight: 1.3 }}>{item.name}</h2>
+              <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace', display: 'block', marginTop: 3 }}>{item.sku}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button className="btn btn-ghost btn-icon btn-sm" onClick={() => { onEdit(item); onClose() }} title="Edit">
+                <Pencil size={14} />
+              </button>
+              <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose}>
+                <X size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="panel-body">
+          {/* Stock highlight */}
+          <div style={{
+            background: status === 'out' ? 'rgba(220,38,38,0.08)' : status === 'low' ? 'rgba(217,119,6,0.08)' : 'rgba(5,150,105,0.08)',
+            border: `1px solid ${status === 'out' ? 'rgba(220,38,38,0.2)' : status === 'low' ? 'rgba(217,119,6,0.2)' : 'rgba(5,150,105,0.2)'}`,
+            borderRadius: 14,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16
+          }}>
             <div>
-              <h2 className="text-xl font-bold">
-                <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">{item.name}</span>
-              </h2>
-              <p className="text-xs text-gray-400 font-mono mt-0.5">{item.sku}</p>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Current Stock</div>
+              <div style={{
+                fontSize: 36, fontWeight: 800, letterSpacing: '-0.04em',
+                color: status === 'out' ? '#f87171' : status === 'low' ? '#fbbf24' : '#10b981',
+                lineHeight: 1.1, marginTop: 2
+              }}>
+                {item.quantity}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 3 }}>Min: {item.minStock}</div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-          </div>
-
-          <div className="premium-card p-5 space-y-4">
-            <div className="grid grid-cols-2 gap-5 text-sm">
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Category</p>
-                <p className="text-gray-800 font-medium">{item.category}</p>
+            <div style={{ textAlign: 'right' }}>
+              <StockBadge quantity={item.quantity} minStock={item.minStock} />
+              <div style={{ fontSize: 12, color: 'var(--color-brand-gold-light)', fontWeight: 700, marginTop: 8 }}>
+                {fmtCurrency(item.price)}
               </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Brand</p>
-                <p className="text-gray-800 font-medium">{item.brand || '—'}</p>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>unit price</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginTop: 6 }}>
+                {fmtCurrency(item.price * item.quantity)}
               </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Location</p>
-                <p className="text-gray-800 font-medium">{item.location || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Condition</p>
-                <p className={`font-semibold text-sm ${conditionColors[item.condition] || 'text-gray-500'}`}>{item.condition}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Quantity</p>
-                <p className={`text-2xl font-bold ${item.quantity <= item.minStock ? 'text-orange-600' : 'text-gray-900'}`}>{item.quantity}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Min Stock</p>
-                <p className="text-gray-700 font-medium">{item.minStock}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Price</p>
-                <p className="text-lg font-bold text-blue-600">${item.price.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Total Value</p>
-                <p className="text-lg font-bold text-purple-600">${(item.price * item.quantity).toFixed(2)}</p>
-              </div>
-            </div>
-            <div className="pt-3 border-t border-gray-100 text-[10px] text-gray-400 font-medium">
-              Created {new Date(item.createdAt).toLocaleDateString()}
-              {item.updatedAt && <> · Updated {new Date(item.updatedAt).toLocaleDateString()}</>}
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>total value</div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={() => { onEdit(item); onClose() }} className="btn-premium flex-1 py-2.5 text-sm">Edit Item</button>
-            <button onClick={() => { onAdjustStock(item.id, 1, 'Manual restock'); onClose() }} className="btn-light px-4 py-2.5 text-sm">+ Restock</button>
+          {/* Quick adjust */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <button
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
+              onClick={() => { onAdjustStock(item.id, -1, 'Manual decrease'); onClose() }}
+            >
+              − Remove 1
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1 }}
+              onClick={() => { onAdjustStock(item.id, 1, 'Manual restock'); onClose() }}
+            >
+              + Restock 1
+            </button>
           </div>
 
+          {/* Details grid */}
+          <div style={{
+            background: 'var(--color-surface-3)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 14,
+            padding: '16px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '14px 20px',
+            marginBottom: 16
+          }}>
+            <FieldRow label="Category" value={item.category} />
+            <FieldRow label="Brand" value={item.brand || '—'} />
+            <FieldRow label="Location" value={item.location || '—'} />
+            <FieldRow label="Condition" value={
+              <span style={{ color: CONDITION_COLORS[item.condition] || 'var(--color-text-secondary)', fontWeight: 600 }}>
+                {item.condition}
+              </span>
+            } />
+            <FieldRow label="Created" value={fmtDate(item.createdAt)} />
+            {item.updatedAt && <FieldRow label="Updated" value={fmtDate(item.updatedAt)} />}
+          </div>
+
+          {/* Stock history */}
           <div>
-            <h3 className="section-header mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <ArrowUpDown size={13} />
               Stock History
-            </h3>
+            </div>
             {loading ? (
-              <p className="text-gray-400 text-sm">Loading...</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 44 }} />)}
+              </div>
             ) : history.length === 0 ? (
-              <p className="text-gray-400 text-sm">No stock changes recorded yet.</p>
+              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-muted)', fontSize: 13 }}>
+                No stock changes recorded yet
+              </div>
             ) : (
-              <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {history.map(h => (
-                  <div key={h.id} className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-transparent rounded-xl px-4 py-3 border border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <span className={`text-sm font-bold ${h.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {h.change > 0 ? '+' : ''}{h.change}
-                      </span>
+                  <div key={h.id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    background: 'var(--color-surface-3)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 10,
+                    padding: '9px 12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: 7,
+                        background: h.change > 0 ? 'rgba(5,150,105,0.12)' : 'rgba(220,38,38,0.12)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        {h.change > 0
+                          ? <TrendingUp size={12} style={{ color: '#10b981' }} />
+                          : <TrendingDown size={12} style={{ color: '#f87171' }} />
+                        }
+                      </div>
                       <div>
-                        <p className="text-xs text-gray-500">{h.previousQty} → {h.newQty}</p>
-                        {h.note && <p className="text-[10px] text-gray-400 mt-0.5">{h.note}</p>}
+                        <span style={{
+                          fontSize: 13, fontWeight: 700,
+                          color: h.change > 0 ? '#10b981' : '#f87171'
+                        }}>
+                          {h.change > 0 ? '+' : ''}{h.change}
+                        </span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 8 }}>
+                          {h.previousQty} → {h.newQty}
+                        </span>
+                        {h.note && (
+                          <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{h.note}</div>
+                        )}
                       </div>
                     </div>
-                    <span className="text-[10px] text-gray-400 font-medium">{new Date(h.createdAt).toLocaleDateString()}</span>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-muted)', flexShrink: 0 }}>
+                      {fmtDate(h.createdAt)}
+                    </span>
                   </div>
                 ))}
               </div>

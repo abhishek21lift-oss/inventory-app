@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Item, Category } from '../types'
+import { X, Package } from 'lucide-react'
 
 interface ItemFormProps {
   categories: Category[]
@@ -8,7 +10,7 @@ interface ItemFormProps {
   onClose: () => void
 }
 
-const conditions = ['New', 'Good', 'Fair', 'Needs Service']
+const CONDITIONS = ['New', 'Good', 'Fair', 'Needs Service']
 
 export default function ItemForm({ categories, editItem, onSave, onClose }: ItemFormProps) {
   const [name, setName] = useState(editItem?.name ?? '')
@@ -31,67 +33,98 @@ export default function ItemForm({ categories, editItem, onSave, onClose }: Item
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative rounded-2xl p-[1px] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-2xl shadow-purple-500/20 w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="bg-white rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold">
-              <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                {editItem ? '✏️ Edit Item' : '📦 Add Item'}
-              </span>
-            </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+    <AnimatePresence>
+      <div className="modal-backdrop" onClick={onClose}>
+        <motion.div
+          className="modal modal-lg"
+          initial={{ opacity: 0, scale: 0.97, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.97, y: 10 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="modal-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 9,
+                background: 'rgba(201,151,58,0.12)',
+                border: '1px solid rgba(201,151,58,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <Package size={15} style={{ color: 'var(--color-brand-gold-light)' }} />
+              </div>
+              <h2 className="modal-title">{editItem ? 'Edit Item' : 'Add New Item'}</h2>
+            </div>
+            <button className="btn btn-ghost btn-icon" onClick={onClose}>
+              <X size={16} />
+            </button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Name</label>
-                <input required value={name} onChange={e => setName(e.target.value)} className="input-apple w-full" placeholder="e.g. Olympic Barbell" />
+
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="input-label">Item Name</label>
+                  <input required value={name} onChange={e => setName(e.target.value)} className="input" placeholder="e.g. Olympic Barbell" />
+                </div>
+                <div className="form-group">
+                  <label className="input-label">SKU</label>
+                  <input required value={sku} onChange={e => setSku(e.target.value)} className="input" placeholder="e.g. BB-001" />
+                </div>
               </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SKU</label>
-                <input required value={sku} onChange={e => setSku(e.target.value)} className="input-apple w-full" placeholder="e.g. BB-001" />
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="input-label">Category</label>
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="input">
+                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="input-label">Condition</label>
+                  <select value={condition} onChange={e => setCondition(e.target.value)} className="input">
+                    {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Category</label>
-                <select value={category} onChange={e => setCategory(e.target.value)} className="input-apple w-full">
-                  {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                </select>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="input-label">Brand</label>
+                  <input value={brand} onChange={e => setBrand(e.target.value)} className="input" placeholder="e.g. Rogue" />
+                </div>
+                <div className="form-group">
+                  <label className="input-label">Location</label>
+                  <input value={location} onChange={e => setLocation(e.target.value)} className="input" placeholder="e.g. Strength Area" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Brand</label>
-                <input value={brand} onChange={e => setBrand(e.target.value)} className="input-apple w-full" placeholder="e.g. Rogue" />
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="input-label">Quantity</label>
+                  <input required type="number" min="0" value={quantity} onChange={e => setQuantity(e.target.value)} className="input" />
+                </div>
+                <div className="form-group">
+                  <label className="input-label">Min Stock Alert</label>
+                  <input required type="number" min="0" value={minStock} onChange={e => setMinStock(e.target.value)} className="input" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Location</label>
-                <input value={location} onChange={e => setLocation(e.target.value)} className="input-apple w-full" placeholder="e.g. Strength Area" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Condition</label>
-                <select value={condition} onChange={e => setCondition(e.target.value)} className="input-apple w-full">
-                  {conditions.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Quantity</label>
-                <input required type="number" min="0" value={quantity} onChange={e => setQuantity(e.target.value)} className="input-apple w-full" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Min Stock</label>
-                <input required type="number" min="0" value={minStock} onChange={e => setMinStock(e.target.value)} className="input-apple w-full" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Price ($)</label>
-                <input required type="number" step="0.01" min="0" value={price} onChange={e => setPrice(e.target.value)} className="input-apple w-full" />
+
+              <div className="form-group">
+                <label className="input-label">Unit Price (USD)</label>
+                <input required type="number" step="0.01" min="0" value={price} onChange={e => setPrice(e.target.value)} className="input" />
               </div>
             </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={onClose} className="btn-light">Cancel</button>
-              <button type="submit" className="btn-premium">{editItem ? 'Update' : 'Add Item'}</button>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+              <button type="submit" className="btn btn-primary">
+                {editItem ? 'Save Changes' : 'Add Item'}
+              </button>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   )
 }
