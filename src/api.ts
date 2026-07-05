@@ -20,11 +20,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const t = getToken()
   const h: Record<string, string> = {}
   if (t) h['Authorization'] = `Bearer ${t}`
-  let body = options?.body
-  if (body instanceof URLSearchParams) {
+  if (options?.body instanceof URLSearchParams) {
     h['Content-Type'] = 'application/x-www-form-urlencoded'
   }
-  const res = await fetch(`${API}${path}`, { ...options, headers: { ...h, ...(options?.headers as Record<string, string>) } })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 30000)
+  let res: Response
+  try {
+    res = await fetch(`${API}${path}`, { ...options, headers: { ...h, ...(options?.headers as Record<string, string>) }, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+  if (res.status === 401) {
+    localStorage.removeItem('user')
+    window.location.href = '/login'
+    throw new Error('Session expired')
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
     throw new Error(err.error || 'Request failed')
